@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "name": "The Bullion Bastion",
+    "description": "Description for The Bullion Bastion",
+    "x": 1169,
+    "y": 407,
+    "width": 620,
+    "height": 727,
+    "image": "/images/missions/layer-3/1.png"
+  },
+  {
+    "id": 2,
+    "name": "The Gilded Press",
+    "description": "Description for The Gilded Press",
+    "x": 1945,
+    "y": 417,
+    "width": 535,
+    "height": 615,
+    "image": "/images/missions/layer-3/3.png"
+  },
+  {
+    "id": 5,
+    "name": "The Refinery Deck",
+    "description": "Description for The Refinery Deck",
+    "x": 1800,
+    "y": 1273,
+    "width": 687,
+    "height": 711,
+    "image": "/images/missions/layer-3/7.png"
+  },
+  {
+    "id": 6,
+    "name": "Genesis Cove Condominium",
+    "description": "Description for Genesis Cove Condominium",
+    "x": 715,
+    "y": 1156,
+    "width": 660,
+    "height": 692,
+    "image": "/images/missions/layer-3/8.png"
+  },
+  {
+    "id": 7,
+    "name": "The Treasure Pit",
+    "description": "Description for The Clockwork Reserve",
+    "x": 2236,
+    "y": 931,
+    "width": 529,
+    "height": 533,
+    "image": "/images/missions/layer-3/6.png"
+  },
+  {
+    "id": 8,
+    "name": "The General Store",
+    "description": "Description for The Mead Hall",
+    "x": 2831,
+    "y": 1181.5,
+    "width": 647,
+    "height": 964,
+    "image": "/images/missions/layer-3/5.png"
+  }
+]

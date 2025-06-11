@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "Dragons Roost",
+    "description": "Description for Dragons Roost",
+    "x": 793,
+    "y": 359,
+    "width": 574,
+    "height": 519,
+    "image": "/images/missions/layer-5/1.png"
+  },
+  {
+    "id": 2,
+    "name": "Fangvault",
+    "description": "Description for Fangvault",
+    "x": 1230,
+    "y": 1040,
+    "width": 299,
+    "height": 444,
+    "image": "/images/missions/layer-5/8.png"
+  },
+  {
+    "id": 3,
+    "name": "Scaleport",
+    "description": "Description for Scaleport",
+    "x": 1981,
+    "y": 1486,
+    "width": 535,
+    "height": 384.5,
+    "image": "/images/missions/layer-5/6.png"
+  },
+  {
+    "id": 4,
+    "name": "The Hatchery",
+    "description": "Description for The Hatchery",
+    "x": 731,
+    "y": 973,
+    "width": 437,
+    "height": 357,
+    "image": "/images/missions/layer-5/9.png"
+  },
+  {
+    "id": 5,
+    "name": "The Vault of Embers",
+    "description": "Description for The Vault of Embers",
+    "x": 2233,
+    "y": 904,
+    "width": 504.5,
+    "height": 503,
+    "image": "/images/missions/layer-5/3.png"
+  }
+]

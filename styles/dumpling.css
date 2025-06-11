@@ -1,0 +1,234 @@
+body {
+  font-size: 0.875rem !important;
+}
+
+.bg-logged-out {
+  background: url(/images/reavers-bg-min.webp) center top no-repeat;
+  background-size: cover;
+}
+
+.bg-logged-out:before {
+  content: '';
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  @apply rounded-xl;
+}
+
+.bg-reavers-bg {
+  --tw-bg-opacity: 0.75;
+  background-color: rgba(0, 0, 0, var(--tw-bg-opacity));
+  backdrop-filter: blur(10px);
+}
+
+.DO-YOU-HAVE-WHAT-IT span {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  display: inline-block;
+  padding: 10px 15px 0 10px;
+}
+
+.text-base {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.main-nav-img {
+  height: 38px;
+  display: inline-block;
+}
+
+.island-nav-img {
+  height: 30px;
+  display: inline-block;
+  object-fit: fill;
+}
+
+/* .dotted-border-left:before {
+  content: "";
+  background-image: url("/images/dots.png");
+  width: 1px;
+  height: 100%;
+  position: absolute;
+} */
+
+.building:hover {
+  filter: drop-shadow(-1px 2px 0 white)
+    drop-shadow(2px -1px 0 rgba(255, 255, 255, 0.7))
+    drop-shadow(-2px -1px 0 rgba(255, 255, 255, 0.7))
+    drop-shadow(1px 1.5px 10px rgba(255, 255, 255, 0.5));
+}
+
+.layer-nav > div {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: -1px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.1s ease-out;
+}
+
+.layer-nav > div svg {
+  opacity: 0.6;
+  transition: 0.1s ease-out;
+}
+
+.layer-nav > div:hover {
+  color: #fff;
+
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7),
+    0 0 0 3px rgba(255, 255, 255, 0.1);
+  z-index: 2;
+}
+
+.layer-nav > div:hover svg {
+  opacity: 1;
+}
+
+.btn-size {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  max-height: 32px;
+}
+
+.bg-failed-mission {
+  background: rgba(205, 28, 58, 0.7);
+  border: 1px solid #ff2e3d;
+}
+
+.building-name {
+  animation: hover 6s infinite ease-in-out;
+  text-transform: uppercase;
+  font-size: 18px;
+  text-align: center;
+  padding: 12px 18px;
+}
+
+.building-name.emerald:before {
+  border-top: 7px solid #19d362;
+}
+
+.building-name:after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+
+  border-top: 7px solid rgb(0 4 7 / 0.85);
+  position: absolute;
+  bottom: -6px;
+}
+
+.building-name:before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+
+  border-top: 7px solid rgba(255, 255, 255, 0.2);
+  position: absolute;
+  bottom: -8px;
+}
+
+.building-name.boosted:before {
+  border-top: 7px solid #23fffa;
+}
+
+.nfts-on-mission-widget {
+  margin: 0 -32px 0 10px;
+  display: flex;
+  flex-direction: row;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
+  width: max-content;
+}
+
+.map-draggable-parent {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
+  user-select: none;
+  margin: 0;
+  padding: 0;
+}
+
+.draggable-parent {
+  position: relative;
+  width: fit-content;
+  /* height: fit-content; */
+  overflow: hidden;
+}
+
+.map-buildings {
+  display: flex;
+  flex-wrap: wrap;
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  height: 2160px;
+  width: 3840px;
+}
+
+.map-parent {
+  width: fit-content;
+  height: fit-content;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.map-video {
+  height: 2160px;
+  min-height: 56vh;
+  min-width: 100vw;
+  object-fit: contain;
+  opacity: 1;
+  width: 3840px;
+  max-width: 3840px;
+}
+
+@keyframes hover {
+  0% {
+    transform: translateY(0) translateX(-50%);
+  }
+
+  50% {
+    transform: translateY(-8px) translateX(-50%);
+  }
+
+  100% {
+    transform: translateY(0) translateX(-50%);
+  }
+}
+
+.mission-modal-item-gradient:after {
+  content: '';
+  position: absolute;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 1) 95%
+  );
+  bottom: 20px;
+  width: 100%;
+  height: 120px;
+  left: 0;
+}
+
+.chat-closed + .chat-frame {
+  display: none !important;
+}

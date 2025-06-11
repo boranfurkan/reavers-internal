@@ -1,0 +1,38 @@
+/* Wrapper element */
+.gradient-border-wrapper {
+  position: relative;
+  border-radius: 12px; /* Your desired border-radius */
+  padding: 2px; /* This padding will effectively become your border width */
+  display: inline-block;
+
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(240, 197, 2, 0.5) 50%,
+    rgba(255, 255, 255, 0.15) 70%
+  );
+}
+
+.gradient-border-wrapper .gradien-left {
+  background: linear-gradient(
+    to right,
+    #f0c502 0%,
+    rgba(255, 255, 255, 0.15) 70%
+  ) !important;
+}
+.gradient-border-wrapper .gradien-right {
+  background: linear-gradient(
+    to left,
+    #f0c502 0%,
+    rgba(255, 255, 255, 0.15) 70%
+  ) !important;
+}
+
+/* Inner element */
+.gradient-border-content {
+  background-color: black; /* Or any color for the content's background */
+  border-radius: 10px; /* Slightly less than wrapper's border-radius */
+  padding: 12px; /* Or as needed */
+  position: relative;
+  z-index: 1; /* Ensures content is above the pseudo-element */
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "Building A",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "location": "New York City",
+    "capacity": "500"
+  },
+  {
+    "id": 2,
+    "name": "Building B",
+    "description": "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.",
+    "location": "Los Angeles",
+    "capacity": "1000"
+  },
+  {
+    "id": 3,
+    "name": "Building C",
+    "description": "Donec eu est non lacus lacinia semper.",
+    "location": "Chicago",
+    "capacity": "750"
+  }
+]

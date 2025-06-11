@@ -1,0 +1,95 @@
+@font-face {
+  font-family: 'adorn_condensed_sansregular';
+  src: url('/fonts/adorncondensedsans-webfont.woff2') format('woff2'),
+    url('/fonts/adorncondensedsans-webfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'proto_monosemibold';
+  src: url('/fonts/protomono-bold_1-webfont.woff2') format('woff2'),
+    url('/fonts/protomono-bold_1-webfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'proto_monoregular';
+  src: url('/fonts/protomono-regular-webfont.woff2') format('woff2'),
+    url('/fonts/protomono-regular-webfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Fluid Fonts */
+
+body,
+html {
+  @apply !font-Body;
+  font-size: calc(16px + (16 - 16) * ((100vw - 320px) / (1280 - 320)));
+  font-family: 'proto_monoregular';
+  /* font-family: 'proto_monosemibold'; */
+  color: white;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 125%;
+  line-height: 135%;
+}
+
+.myConnect {
+  font-size: calc(12px + (12 - 12) * ((100vw - 320px) / (1920 - 320)));
+}
+.profileInfoTag {
+  font-size: calc(20px + (24 - 20) * ((100vw - 320px) / (1920 - 320)));
+}
+.profileInfoTag2 {
+  font-size: calc(10px + (10 - 10) * ((100vw - 320px) / (1920 - 320)));
+}
+.layerProgressStatus {
+  font-size: calc(10px + (11 - 10) * ((100vw - 320px) / (1920 - 320)));
+}
+
+h1 {
+  font-size: calc(30px + (54 - 30) * ((100vw - 320px) / (1920 - 320)));
+  font-family: 'adorn_condensed_sansregular', sans-serif;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: calc(125% + (150% - 125%) * ((100vw - 320px) / (1920 - 320)));
+  line-height: calc(36px + (40 - 36) * ((100vw - 320px) / (1920 - 320)));
+}
+
+h2 {
+  font-size: calc(20px + (24 - 20) * ((100vw - 320px) / (1920 - 320)));
+  font-family: 'adorn_condensed_sansregular';
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: calc(125% + (150% - 125%) * ((100vw - 320px) / (1920 - 320)));
+  line-height: calc(34px + (38 - 34) * ((100vw - 320px) / (1920 - 320)));
+}
+
+h3 {
+  font-size: calc(18px + (20 - 18) * ((100vw - 320px) / (1920 - 320)));
+  font-family: 'adorn_condensed_sansregular';
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: calc(125% + (150% - 125%) * ((100vw - 320px) / (1920 - 320)));
+  line-height: calc(28px + (32 - 28) * ((100vw - 320px) / (1920 - 320)));
+}
+
+.DO-YOU-HAVE-WHAT-IT {
+  margin: 0 0 37px;
+  font-size: calc(48px + (67 - 48) * ((100vw - 320px) / (1600 - 320)));
+  font-weight: normal;
+  font-stretch: condensed;
+  font-style: normal;
+  line-height: 1.01;
+  letter-spacing: -4.83px;
+  text-align: center;
+  color: #fff;
+}
+
+.nftmanagement {
+  font-size: calc(14px + (16 - 14) * ((100vw - 320px) / (1920 - 320)));
+  line-height: calc(16px + (16 - 16) * ((100vw - 320px) / (1920 - 320)));
+}

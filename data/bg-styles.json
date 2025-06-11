@@ -1,0 +1,82 @@
+{
+  "default": {
+    "backgroundImage": "url(/images/mission-modal/reavers-map.webp)",
+    "backgroundPosition": "50% 50%",
+    "backgroundSize": "2800px"
+  },
+  "The Docks": {
+    "backgroundImage": "url(/images/maps/island-1-fallback.webp)",
+    "backgroundPosition": "32% 56%",
+    "backgroundSize": "2800px"
+  },
+  "Captain's Academy": {
+    "backgroundImage": "url(/images/maps/island-1-fallback.webp)",
+    "backgroundPosition": "62% 42%",
+    "backgroundSize": "2800px"
+  },
+  "The Blacksmith": {
+    "backgroundImage": "url(/images/maps/island-1-fallback.webp)",
+    "backgroundPosition": "100% 76%",
+    "backgroundSize": "2800px"
+  },
+  "Shipwright and Co": {
+    "backgroundImage": "url(/images/maps/island-1-fallback.webp)",
+    "backgroundPosition": "75% 100%",
+    "backgroundSize": "2800px"
+  },
+  "Dragons Roost": {
+    "backgroundImage": "url(/images/maps/island-2-fallback.jpg)",
+    "backgroundPosition": "23% 100%",
+    "backgroundSize": "2800px"
+  },
+  "Fangvault": {
+    "backgroundImage": "url(/images/maps/island-2-fallback.jpg)",
+    "backgroundPosition": "12% 24%",
+    "backgroundSize": "2800px"
+  },
+  "Scaleport": {
+    "backgroundImage": "url(/images/maps/island-2-fallback.jpg)",
+    "backgroundPosition": "13% 96%",
+    "backgroundSize": "2800px"
+  },
+  "The Hatchery": {
+    "backgroundImage": "url(/images/maps/island-2-fallback.jpg)",
+    "backgroundPosition": "20% 36%",
+    "backgroundSize": "2800px"
+  },
+  "The Vault of Embers": {
+    "backgroundImage": "url(/images/maps/island-2-fallback.jpg)",
+    "backgroundPosition": "53% 21%",
+    "backgroundSize": "2800px"
+  },
+  "The Bullion Bastion": {
+    "backgroundImage": "url(/images/maps/island-3-fallback.jpg)",
+    "backgroundPosition": "42% 69%",
+    "backgroundSize": "2800px"
+  },
+  "The Gilded Press": {
+    "backgroundImage": "url(/images/maps/island-3-fallback.jpg)",
+    "backgroundPosition": "89% 99%",
+    "backgroundSize": "2800px"
+  },
+  "The Refinery Deck": {
+    "backgroundImage": "url(/images/maps/island-3-fallback.jpg)",
+    "backgroundPosition": "100% 73%",
+    "backgroundSize": "2800px"
+  },
+  "Genesis Cove Condominium": {
+    "backgroundImage": "url(/images/maps/island-3-fallback.jpg)",
+    "backgroundPosition": "100% 63%",
+    "backgroundSize": "2800px"
+  },
+  "The Treasure Pit": {
+    "backgroundImage": "url(/images/maps/island-3-fallback.jpg)",
+    "backgroundPosition": "69% 67%",
+    "backgroundSize": "2800px"
+  },
+  "The General Store": {
+    "backgroundImage": "url(/images/maps/island-3-fallback.jpg)",
+    "backgroundPosition": "83% 100%",
+    "backgroundSize": "2800px"
+  }
+}
