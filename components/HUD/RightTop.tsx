@@ -27,6 +27,7 @@ import NftManagementIcon from '../../assets/nft-management-icon';
 import ConnectSocialsIcon from '../../assets/connect-socials-icon';
 import WalletIcon from '../../assets/wallet-icon';
 import LogoutIcon from '../../assets/logout-icon';
+import { Flame, FlameIcon } from 'lucide-react';
 
 function RightTop({ isSelectTeam }: any) {
   const layerContext = useContext(LayerContext);
@@ -39,6 +40,7 @@ function RightTop({ isSelectTeam }: any) {
     setProfileModalOpen,
     toggleTab,
     setHideoutModalOpen,
+    setForgeModalOpen,
     walletRef,
     profileRef,
     inventoryRef,
@@ -264,7 +266,6 @@ function RightTop({ isSelectTeam }: any) {
                     Inventory
                   </li>
 
-                  {/* Leaderboard */}
                   <li
                     className="flex h-[38px] w-full cursor-pointer flex-row flex-nowrap items-center 
                                justify-start gap-1 rounded bg-[#222a2e] bg-opacity-[0.5] text-start 
@@ -272,15 +273,15 @@ function RightTop({ isSelectTeam }: any) {
                                hover:border-opacity-40 hover:bg-opacity-100 
                                hover:shadow-[0_0_0_1px_rgba(255,255,255,0.2)_inset]"
                     onClick={() => {
-                      toggleTab('leaderboard');
-                      setHideoutModalOpen((prev) => !prev);
-                    }}>
+                      setForgeModalOpen(true);
+                      setMenuDropdownOpen(false);
+                    }}
+                    ref={assetManagerRef}>
                     <div className="-ml-[2px] h-full w-[50px] justify-center hover:bg-opacity-0">
-                      <LeaderboardIcon className="w-[16px]" />
+                      <FlameIcon className="w-[16px]" />
                     </div>
-                    Leaderboard
+                    The Forge
                   </li>
-                  <div className="my-1 h-[1px] w-full bg-white bg-opacity-10 "></div>
 
                   {/* NFT Management */}
                   <li
@@ -296,7 +297,7 @@ function RightTop({ isSelectTeam }: any) {
                     </div>
                     Asset Manager
                   </li>
-
+                  <div className="my-1 h-[1px] w-full bg-white bg-opacity-10 "></div>
                   {/* Connect Socials */}
                   <li
                     className="flex h-[38px] w-full cursor-pointer flex-row flex-nowrap items-center 
