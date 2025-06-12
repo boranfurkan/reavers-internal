@@ -30,6 +30,7 @@ import FleetCommanderDashboardModal from '../components/fleet-commander-dashboar
 import { useDynamicContextWrapper } from '../hooks/UseDynamicContextWrapper';
 import Script from 'next/script';
 import IslandSelector from '../components/HUD/IslandSelector';
+import ForgeModal from '../components/forge/ForgeModal';
 /* import ArenaLeaderboardModal from '../components/inventory/leaderboards/Arena/TheArenaModal'; */
 
 export const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY ?? '', {
@@ -97,6 +98,7 @@ const Home: NextPage = () => {
         <LayerAndMissionSelectModal />
 
         <FleetCommanderDashboardModal />
+        <ForgeModal />
 
         {/*         <ArenaLeaderboardModal /> */}
 

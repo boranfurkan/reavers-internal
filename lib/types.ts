@@ -57,6 +57,10 @@ export interface User {
   // Temporary
   treasureAmount: number;
   fleetCommanderLevel: number;
+
+  shipTokens: number;
+  crewTokens: number;
+  itemTokens: number;
 }
 
 interface BaseLeaderboardTreasureResponse {

@@ -10,8 +10,8 @@ import {
 import { GenesisShip, GenesisShipRarity } from '../types/Genesis';
 import { decryptData, encryptData } from '../stores/useAuthLocalStorage';
 import { CSSProperties } from 'react';
-import { CharacterNFT, CrewNFT, NFT, ShipNFT } from '../types/NFT';
-import { BaseEntity, NFTMaxLevels, NFTType } from '../types/BaseEntity';
+import { CharacterNFT, NFT } from '../types/NFT';
+import { NFTMaxLevels, NFTType } from '../types/BaseEntity';
 import { MAX_COMMON_SHIP_LEVEL, MAX_LEGENDARY_SHIP_LEVEL } from '../types/Ship';
 import LevelUpDurations from '../data/levelUpDurationsInHour.json';
 import LevelUpUsdCosts from '../data/entityLevelUpUsdCosts.json';
@@ -327,32 +327,6 @@ export const isArrayOfItemData = (
   equippedItems: any,
 ): equippedItems is ItemData[] => {
   return Array.isArray(equippedItems) && equippedItems.length > 0;
-};
-
-export const getItemsDataFromNFT = (nft: CharacterNFT) => {
-  let result: (Item | undefined)[] = [];
-
-  if (nft.equippedItems && nft.equippedItemsLoaded) {
-    nft.equippedItemsLoaded.forEach((item) => {
-      // Check if any string in the equippedItems array is included in item.uid
-      if (
-        nft.equippedItems!.some(
-          (equippedItem) =>
-            item.uid!.includes(equippedItem) ||
-            equippedItem.includes(item.uid!),
-        )
-      ) {
-        result.push(item as Item);
-      }
-    });
-  }
-
-  // Ensure the result array has at least 2 elements
-  while (result.length < 2) {
-    result.push(undefined);
-  }
-
-  return result;
 };
 
 export const isSpecialMission = (missionData: MissionStats | undefined) => {
@@ -796,55 +770,12 @@ export const formatPercentage = (value: number): string => {
   return `${(value * 100).toFixed(0)}%`;
 };
 
-export const calculateCharacterStrength = (
-  character: CharacterNFT,
-  crews: CrewNFT[],
-  ships: ShipNFT[],
-  items: ItemData[],
-) => {
-  let crewLevel = 0;
-  let shipLevel = 1;
-
-  // Find equipped crew
-  if (
-    character.equippedCrew &&
-    character.equippedCrew !== null &&
-    character.equippedCrew !== ''
-  ) {
-    const crewNft = crews.find((crew) => crew.uid === character.equippedCrew);
-    if (crewNft) {
-      crewLevel = crewNft.level || 0;
-    }
-  }
-
-  // Find equipped ship
-  if (
-    character.equippedShip &&
-    character.equippedShip !== null &&
-    character.equippedShip !== ''
-  ) {
-    const shipNft = ships.find((ship) => ship.uid === character.equippedShip);
-    if (shipNft) {
-      shipLevel = shipNft.level || 1;
-    }
-  }
-
-  // Calculate items total level
-  const equippedItems = items.filter(
-    (item) => item.uid && character.equippedItems?.includes(item.uid),
-  );
-
-  const itemsTotalLevel = equippedItems.reduce(
-    (acc, item) => acc + (item.level || 0),
-    0,
-  );
-
-  // Calculate strength
-  const baseStrength = crewLevel + itemsTotalLevel;
+export const calculateCharacterStrength = (character: CharacterNFT) => {
+  const baseStrength = (character.crewLevel || 1) + (character.itemLevel || 1);
   const strength =
     baseStrength === 0
-      ? (character.level || 1) * shipLevel
-      : (character.level || 1) * baseStrength * shipLevel;
+      ? (character.level || 1) * (character.shipLevel || 1)
+      : (character.level || 1) * baseStrength ** (character.shipLevel || 1);
 
   return strength;
 };

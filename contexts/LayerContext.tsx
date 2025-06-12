@@ -170,6 +170,9 @@ interface LayerContextType {
   isSetNftMovementOpen: boolean;
   setNftMovementOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
+  isForgeModalOpen: boolean;
+  setForgeModalOpen: (open: boolean) => void;
+
   // Tabs
   tabs: Tab[];
   activeTab: Tab;
@@ -456,6 +459,8 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [missionFeed, setMissionFeed] = useState<PostMission[]>([]);
   const [missionFeedLoaded, setMissionFeedLoaded] = useState(false);
 
+  const [isForgeModalOpen, setForgeModalOpen] = useState(false);
+
   // State for selected item
   const [selectedItemForEquip, setSelectedItemForEquip] =
     useState<ItemData | null>(null);
@@ -614,27 +619,8 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
             : item.name === postMission.outcome.effect,
         );
 
-        // Add item image if available
         if (itemStats?.image) {
           postMission.itemImage = itemStats.image;
-        }
-
-        // Process equipped items for each NFT
-        if (postMission.nftsLoaded) {
-          postMission.nftsLoaded.forEach((nft) => {
-            // Initialize equipped items array
-            nft.equippedItemsLoaded = [];
-
-            // Add equipped items if they exist
-            if (nft.equippedItems) {
-              nft.equippedItems.forEach((itemName) => {
-                const loadedItem = items.find((i) => i.name === itemName);
-                if (loadedItem) {
-                  nft.equippedItemsLoaded?.push(loadedItem);
-                }
-              });
-            }
-          });
         }
       });
 
@@ -948,6 +934,9 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
     setMarketModalOpen,
     isSetNftMovementOpen: modals.nftMovement,
     setNftMovementOpen,
+
+    isForgeModalOpen,
+    setForgeModalOpen,
 
     // Tabs
     tabs,

@@ -1,16 +1,10 @@
-import { ItemData } from '../lib/types';
 import { BaseEntity, NFTType } from './BaseEntity';
-import { CharacterNFT } from './NFT';
 
 export type CharacterType = NFTType.FM | NFTType.QM | NFTType.UNIQUE;
 
 export interface Character extends BaseEntity {
-  equippedItems: string[]; // Array of Item IDs equipped to the NFT.
-  equippedStatus: EquipStatus | null;
-  equippedItemsLoaded?: ItemData[];
-
-  equippedCrew?: string;
-  equippedShip?: string;
+  type: CharacterType;
+  image: string;
 
   arEarned: number;
   gemsEarned: number;
@@ -24,12 +18,13 @@ export interface Character extends BaseEntity {
   timePlayed: number;
   timeSpentInPrison: number;
 
-  type: CharacterType;
-
-  levelUpSuccessRate: number;
   staked?: StakeStatus;
   locked: LockStatus | null;
   strength: number;
+
+  shipLevel: number;
+  crewLevel: number;
+  itemLevel: number;
 }
 
 interface StakeStatus {
@@ -42,9 +37,4 @@ interface StakeStatus {
 interface LockStatus {
   startTime: number;
   locked: boolean;
-}
-
-interface EquipStatus {
-  luckSlot: string;
-  yieldSlot: string;
 }

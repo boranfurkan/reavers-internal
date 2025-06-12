@@ -349,27 +349,17 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         }
 
-        const itemDatas = state.loadedInventory.filter(
-          (item) => item.uid && character?.equippedItems?.includes(item.uid),
-        );
-
         const activeMission = state.activeMissions.find(
           (mission) =>
             mission.nftIds.includes(character.uid) && !mission.stakedSpecial,
         );
 
         // Calculate strength and add it to the character
-        const strength = calculateCharacterStrength(
-          character,
-          crewsInGame,
-          shipsInGame,
-          state.loadedInventory,
-        );
+        const strength = calculateCharacterStrength(character);
 
         return {
           ...character,
           ...matchingEntry,
-          equippedItemsLoaded: itemDatas,
           currentMissionLoaded: activeMission,
           levelUpSuccessRate: 100,
           strength: strength,
@@ -410,9 +400,7 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
           ),
       );
 
-      // Add strength calculation to on-chain characters
       const enhancedOnChainCharacters = onChainOnlyCharacters.map((char) => {
-        // Create a basic structure matching our CharacterNFT type
         const baseChar = {
           ...char,
           equippedItems: [],
@@ -421,13 +409,7 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
           level: 1, // Default level
         } as CharacterNFT;
 
-        // Calculate strength (will be minimal for on-chain only)
-        const strength = calculateCharacterStrength(
-          baseChar,
-          crewsInGame,
-          shipsInGame,
-          state.loadedInventory,
-        );
+        const strength = calculateCharacterStrength(baseChar);
 
         return {
           ...baseChar,
