@@ -17,6 +17,7 @@ import { NFTType, NFTMaxLevels } from '../../../../types/BaseEntity';
 import ArrowRightIcon from '../../../../assets/arrow-right-icon';
 import PlusIcon from '../../../../assets/plus-icon';
 import MinusIcon from '../../../../assets/minus-icon';
+import GetIconForEntitiy from '../../../GetIconForEntitiy';
 
 interface EventsBackSideProps {
   missionName: string;
@@ -26,10 +27,6 @@ interface EventsBackSideProps {
     level: number;
     maxLevel: number;
     levelUpCount: number;
-    metadata: {
-      image: string;
-      name: string;
-    };
     type: NFTType;
   };
   handleLevelUpCountChange: (uid: string, levelUpCount: number) => void;
@@ -108,7 +105,7 @@ const EventsBackSide = ({
         className="flex h-full w-full flex-col items-center justify-start rounded-md shadow-lg transition-colors duration-300 ease-in-out"
         style={{ background: backgroundColor }}>
         <StyledEntityCard
-          className="!rounded-b-none"
+          className="flex min-h-[70px] items-center justify-center !rounded-b-none"
           rarity={rarityLevel}
           isCaptain={
             entityToBeUpgraded.type === NFTType.FM ||
@@ -135,14 +132,10 @@ const EventsBackSide = ({
             style={{ backgroundColor: getColor(70) }}>
             MAX
           </button>
-
-          <Image
-            src={entityToBeUpgraded.metadata?.image || '/images/reaver.webp'}
-            alt={entityToBeUpgraded.metadata?.name || 'Reaver'}
-            className="rounded-[6px] py-1"
-            width={70}
-            height={70}
-            unoptimized
+          <GetIconForEntitiy
+            entityType={entityToBeUpgraded.type}
+            width={60}
+            height={60}
           />
         </StyledEntityCard>
 
@@ -160,7 +153,11 @@ const EventsBackSide = ({
 
           <div className="flex h-full w-full flex-col justify-between p-1 text-center">
             <p className="text-sm font-semibold uppercase">
-              {entityToBeUpgraded.metadata?.name}
+              {entityToBeUpgraded.type === NFTType.QM ||
+              NFTType.FM ||
+              NFTType.UNIQUE
+                ? 'Captain'
+                : entityToBeUpgraded.type}
             </p>
             <div className="mt-2 flex flex-row items-center justify-center gap-1 uppercase">
               <p className="text-xs font-semibold text-gray-300">

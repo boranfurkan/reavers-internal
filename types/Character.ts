@@ -25,6 +25,7 @@ export interface Character extends BaseEntity {
   shipLevel: number;
   crewLevel: number;
   itemLevel: number;
+  shipType: 'Mythic' | 'Common';
 }
 
 interface StakeStatus {

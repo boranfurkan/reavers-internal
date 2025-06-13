@@ -13,6 +13,8 @@ import PlusIcon from '../../../../assets/plus-icon';
 import MinusIcon from '../../../../assets/minus-icon';
 import { formatHoursToHMS, cn } from '../../../../utils/helpers';
 import { LayerContext } from '../../../../contexts/LayerContext';
+import GetIconForEntitiy from '../../../GetIconForEntitiy';
+import { NFTType } from '../../../../types/BaseEntity';
 
 interface BurnersBackSideProps {
   missionName: string;
@@ -20,10 +22,6 @@ interface BurnersBackSideProps {
     uid: string;
     level: number;
     levelUpCount: number;
-    metadata: {
-      image: string;
-      name: string;
-    };
   };
   handleLevelUpCountChange: (uid: string, levelUpCount: number) => void;
 }
@@ -127,7 +125,7 @@ const BurnersBackSide: React.FC<BurnersBackSideProps> = ({
           style={{ background: backgroundColor, borderColor: borderColor }}>
           {/* Entity display section */}
           <StyledEntityCard
-            className="!rounded-b-none"
+            className="flex min-h-[70px] items-center justify-center !rounded-b-none"
             rarity="COMMON"
             style={{
               background: 'rgba(155, 106, 253, 0.2)',
@@ -144,14 +142,7 @@ const BurnersBackSide: React.FC<BurnersBackSideProps> = ({
             </div>
 
             {/* Entity image */}
-            <Image
-              src={entityToBeUpgraded.metadata?.image || '/images/reaver.webp'}
-              alt={entityToBeUpgraded.metadata?.name || 'Entity'}
-              className="rounded-[6px] py-1"
-              width={70}
-              height={70}
-              unoptimized
-            />
+            <GetIconForEntitiy entityType={NFTType.QM} width={60} height={60} />
           </StyledEntityCard>
 
           {/* Controls and information section */}
@@ -173,7 +164,7 @@ const BurnersBackSide: React.FC<BurnersBackSideProps> = ({
             {/* Mission information */}
             <div className="flex h-full w-full flex-col justify-between p-1 text-center">
               <p className="text-sm font-semibold uppercase">
-                {entityToBeUpgraded.metadata?.name || 'The Gilded Press'}
+                {missionName || 'Burner Mission'}
               </p>
 
               <div className="mt-1 flex w-full flex-col">

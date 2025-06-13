@@ -402,9 +402,6 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
       const enhancedOnChainCharacters = onChainOnlyCharacters.map((char) => {
         const baseChar = {
           ...char,
-          equippedItems: [],
-          equippedCrew: '',
-          equippedShip: '',
           level: 1, // Default level
         } as CharacterNFT;
 

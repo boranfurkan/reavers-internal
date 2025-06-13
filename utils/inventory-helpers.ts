@@ -152,7 +152,7 @@ export const animations = {
  * @param equippedTo The equippedTo path string
  * @returns Object containing entity type and ID
  */
-export const getEquippedEntityInfo = (equippedTo: string | undefined) => {
+const getEquippedEntityInfo = (equippedTo: string | undefined) => {
   if (!equippedTo) return { type: 'Unknown', id: 'Unknown' };
 
   const parts = equippedTo.split('/');
@@ -285,7 +285,7 @@ export const getRarityBorderColor = (rarity: string): React.CSSProperties => {
   };
 };
 
-export const getGenesisRarityStyle = (
+const getGenesisRarityStyle = (
   rarity: GenesisShipRarity,
 ): React.CSSProperties => {
   switch (rarity) {

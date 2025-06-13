@@ -55,7 +55,7 @@ export const LicenseCostInBooty = {
   },
 } as const;
 
-export const MissionCostsInBooty = {
+const MissionCostsInBooty = {
   FLEET_COMMANDER: 45,
   GOLD: 45,
   SILVER: 9,

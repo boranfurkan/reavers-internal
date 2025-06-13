@@ -372,13 +372,6 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
         hideInModal: false,
       },
       {
-        name: 'marketplace',
-        image: '/images/menu/marketplace.png',
-        disabled: false,
-        hideInModal: true,
-        onClick: () => setModalState('market', true),
-      },
-      {
         name: 'Fleet Command',
         image: '/images/fleet-commander-icon.webp',
         disabled: false,

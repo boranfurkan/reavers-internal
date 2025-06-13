@@ -6,7 +6,6 @@ import { CharacterNFT, CrewNFT, ShipNFT } from '../../../../types/NFT';
 import {
   adjustColor,
   decideEntitiyToBeUpgraded,
-  getItemsDataFromNFT,
   getLevelRarity,
   getRarityColorWithOpacity,
 } from '../../../../utils/helpers';
@@ -21,6 +20,7 @@ import { useNfts } from '../../../../contexts/NftContext';
 import { Item } from '../../../../lib/types';
 import { NFTMaxLevels, NFTType } from '../../../../types/BaseEntity';
 import Loading from '../../../Loading';
+import GetIconForEntitiy from '../../../GetIconForEntitiy';
 
 interface MissionCardProps {
   id: string;
@@ -57,26 +57,6 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
     currentGoldPrice,
   }) => {
     const [flipped, setFlipped] = useState(isSelected);
-    const nfts = useNfts();
-
-    const [itemSlot1, itemSlot2] = useMemo(
-      () => getItemsDataFromNFT(captain),
-      [captain],
-    );
-    const crewNft = useMemo(
-      () =>
-        nfts.crewsInGame.find(
-          (nft) => nft.uid === captain.equippedCrew,
-        ) as CrewNFT,
-      [nfts.crewsInGame, captain],
-    );
-    const shipNft = useMemo(
-      () =>
-        nfts.shipsInGame.find(
-          (nft) => nft.uid === captain.equippedShip,
-        ) as ShipNFT,
-      [nfts.shipsInGame, captain],
-    );
 
     const entityToBeUpgraded = useMemo(() => {
       const selectedCaptain = selectedCharacters.find(
@@ -87,28 +67,26 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
 
       const entityType = decideEntitiyToBeUpgraded(currentMission);
 
-      if (entityType === 'Ship' && shipNft) {
+      if (entityType === 'Ship') {
         // Ship type check
         const maxLevel =
-          shipNft.rarity === 'COMMON'
+          selectedCaptain?.captain.shipType === 'Common'
             ? NFTMaxLevels.COMMON_SHIP
             : NFTMaxLevels.MYTHIC_SHIP;
 
         return {
           uid: selectedCaptainUid,
-          level: shipNft.level || 1,
+          level: selectedCaptain?.captain.shipLevel || 1,
           levelUpCount: selectedCaptainLevelUpCount,
           maxLevel: maxLevel,
-          metadata: shipNft.metadata!,
           type: NFTType.SHIP,
         };
-      } else if (entityType === 'Crew' && crewNft) {
+      } else if (entityType === 'Crew') {
         return {
           uid: selectedCaptainUid,
-          level: crewNft.level || 1,
+          level: selectedCaptain?.captain.crewLevel || 1,
           levelUpCount: selectedCaptainLevelUpCount,
           maxLevel: NFTMaxLevels.CREW,
-          metadata: crewNft.metadata!,
           type: NFTType.CREW,
         };
       } else if (entityType === 'Character') {
@@ -129,47 +107,15 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
           type: captain.type!,
         };
       } else {
-        // Item type logic
-        if (itemSlot1 && itemSlot2) {
-          const lowerLevelItem =
-            itemSlot1.level > itemSlot2.level ? itemSlot2 : itemSlot1;
-          return {
-            uid: selectedCaptainUid,
-            level: lowerLevelItem.level,
-            levelUpCount: selectedCaptainLevelUpCount,
-            maxLevel: NFTMaxLevels.ITEM,
-            metadata: lowerLevelItem.metadata!,
-            type: NFTType.ITEM,
-          };
-        } else if (itemSlot1) {
-          return {
-            uid: selectedCaptainUid,
-            level: itemSlot1.level,
-            levelUpCount: selectedCaptainLevelUpCount,
-            maxLevel: NFTMaxLevels.ITEM,
-            metadata: itemSlot1.metadata!,
-            type: NFTType.ITEM,
-          };
-        } else if (itemSlot2) {
-          return {
-            uid: selectedCaptainUid,
-            level: itemSlot2.level,
-            levelUpCount: selectedCaptainLevelUpCount,
-            maxLevel: NFTMaxLevels.ITEM,
-            metadata: itemSlot2.metadata!,
-            type: NFTType.ITEM,
-          };
-        }
+        return {
+          uid: selectedCaptainUid,
+          level: selectedCaptain?.captain.itemLevel || 1,
+          levelUpCount: selectedCaptainLevelUpCount,
+          maxLevel: NFTMaxLevels.ITEM,
+          type: NFTType.ITEM,
+        };
       }
-    }, [
-      currentMission,
-      captain,
-      shipNft,
-      crewNft,
-      itemSlot1,
-      itemSlot2,
-      selectedCharacters,
-    ]);
+    }, [currentMission, captain, selectedCharacters]);
 
     useEffect(() => {
       setFlipped(isSelected);
@@ -190,45 +136,56 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
 
     const renderEntity = useCallback(
       (
-        entity: CrewNFT | ShipNFT | Item | undefined,
+        chracter: CharacterNFT,
         type: NFTType.CREW | NFTType.SHIP | NFTType.ITEM,
-        placeholder: string,
         altText: string,
       ) =>
-        entity ? (
+        chracter ? (
           <StyledEntityCard
-            rarity={getLevelRarity(type, entity.level || 1)}
+            rarity={getLevelRarity(
+              type,
+              type === NFTType.CREW
+                ? chracter.crewLevel || 1
+                : type === NFTType.ITEM
+                ? chracter.itemLevel || 1
+                : chracter.shipLevel || 1,
+            )}
             className="flex h-full w-full items-center justify-center">
             <RarityBadge
               bgColor={getRarityColorWithOpacity(
-                getLevelRarity(type, entity.level || 1),
+                getLevelRarity(
+                  type,
+                  type === NFTType.CREW
+                    ? chracter.crewLevel || 1
+                    : type === NFTType.ITEM
+                    ? chracter.itemLevel || 1
+                    : chracter.shipLevel || 1,
+                ),
                 80,
               )}
-              rarityText={getLevelRarity(type, entity.level || 1)}
-              secondayText={`(${entity.level})`}
+              rarityText={getLevelRarity(
+                type,
+                type === NFTType.CREW
+                  ? chracter.crewLevel || 1
+                  : type === NFTType.ITEM
+                  ? chracter.itemLevel || 1
+                  : chracter.shipLevel || 1,
+              )}
+              secondayText={`(${
+                type === NFTType.CREW
+                  ? chracter.crewLevel || 1
+                  : type === NFTType.ITEM
+                  ? chracter.itemLevel || 1
+                  : chracter.shipLevel || 1
+              })`}
               size="extraSmall"
               className="absolute left-1 top-1 z-10"
             />
-            {type === NFTType.SHIP || type === NFTType.CREW ? (
-              <Image
-                src={entity.metadata?.image || placeholder}
-                alt={entity.metadata?.name || altText}
-                className="w-full rounded-[6px]"
-                objectFit="cover"
-                quality={100}
-                fill
-                unoptimized={true}
-              />
-            ) : (
-              <Image
-                src={entity.metadata?.image || placeholder}
-                alt={entity.metadata?.name || altText}
-                className="mt-1 h-max rounded-[6px]"
-                width={60}
-                height={60}
-                unoptimized
-              />
-            )}
+            <GetIconForEntitiy
+              entityType={type}
+              className="h-10 w-10"
+              style={{ pointerEvents: 'none' }}
+            />
           </StyledEntityCard>
         ) : (
           <NotSelectedDiv className="col-span-1">
@@ -260,30 +217,15 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
               </div>
             </div>
             <div className="grid w-full grid-cols-2 gap-3">
-              {renderEntity(
-                itemSlot1,
-                NFTType.ITEM,
-                '/images/weapon-axe.webp',
-                'Item',
-              )}
-              {renderEntity(
-                itemSlot2,
-                NFTType.ITEM,
-                '/images/weapon-axe.webp',
-                'Item',
-              )}
-              {renderEntity(
-                shipNft,
-                NFTType.SHIP,
-                '/images/reavers.webp',
-                'Ship',
-              )}
-              {renderEntity(
-                crewNft,
-                NFTType.CREW,
-                '/images/mission-modal/crew-nft.webp',
-                'Crew',
-              )}
+              {renderEntity(captain, NFTType.ITEM, '/images/weapon-axe.webp')}
+              {renderEntity(captain, NFTType.SHIP, '/images/reavers.webp')}
+              <div className="col-span-2 w-full">
+                {renderEntity(
+                  captain,
+                  NFTType.CREW,
+                  '/images/mission-modal/crew-nft.webp',
+                )}
+              </div>
             </div>
           </div>
           <div className="flex w-full flex-col gap-2">
@@ -301,7 +243,7 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
           </div>
         </CardFace>
       ),
-      [captain, renderEntity, itemSlot1, itemSlot2, shipNft, crewNft],
+      [captain, renderEntity],
     );
 
     const BackSide = useMemo(() => {

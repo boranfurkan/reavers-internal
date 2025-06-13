@@ -44,16 +44,6 @@ const MissionActivityFeed: React.FC = () => {
         if (itemStats && itemStats.image) {
           postMission.itemImage = itemStats.image;
         }
-
-        postMission.nftsLoaded?.forEach((nft) => {
-          nft.equippedItemsLoaded = [];
-          nft.equippedItems?.forEach((itemName) => {
-            const loadedItem = items.find((i) => i.name === itemName);
-            if (loadedItem) {
-              nft.equippedItemsLoaded?.push(loadedItem);
-            }
-          });
-        });
       });
       setMissionFeed(postMissions);
     }

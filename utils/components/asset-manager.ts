@@ -156,29 +156,7 @@ export const getAssetCardPropsFromNFT = ({
         goldBurned = characterNFT.goldBurned || 0;
         if (characterNFT.currentMission !== '') {
           isActionLimited = true;
-        } else if (
-          characterNFT.equippedCrew !== '' &&
-          characterNFT.equippedCrew !== null
-        ) {
-          isActionLimited = true;
-        } else if (
-          characterNFT.equippedShip !== '' &&
-          characterNFT.equippedShip !== null
-        ) {
-          isActionLimited = true;
         }
-        if (
-          characterNFT.equippedItems &&
-          characterNFT.equippedItems.length > 0
-        ) {
-          isActionLimited = true;
-        } else {
-          isActionLimited = false;
-        }
-      } else if (type === NFTType.CREW || type === NFTType.SHIP) {
-        isActionLimited = (nft as CrewNFT | ShipNFT).equipped === true;
-      } else if (type === NFTType.ITEM) {
-        isActionLimited = (nft as ItemData).equipped === true;
       } else if (type === NFTType.GENESIS_SHIP) {
         isActionLimited =
           (!!(nft as GenesisShipNFT).assignedUserId &&

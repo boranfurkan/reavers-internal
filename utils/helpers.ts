@@ -7,7 +7,7 @@ import {
   MissionStats,
   User,
 } from '../lib/types';
-import { GenesisShip, GenesisShipRarity } from '../types/Genesis';
+import { GenesisShipRarity } from '../types/Genesis';
 import { decryptData, encryptData } from '../stores/useAuthLocalStorage';
 import { CSSProperties } from 'react';
 import { CharacterNFT, NFT } from '../types/NFT';
@@ -87,10 +87,6 @@ export const groupIntoTeams = (
   teams.push({ nfts: currentPartialTeam, items: [] });
 
   return teams;
-};
-
-export const getUserArAmountNumber = (user: User | undefined) => {
-  return user?.arAmount || 0;
 };
 
 export const getUserBootyOrGoldAmount = (
@@ -321,12 +317,6 @@ export const getBuildingStyle = (buildingName: string): CSSProperties => {
   }
 
   return style;
-};
-
-export const isArrayOfItemData = (
-  equippedItems: any,
-): equippedItems is ItemData[] => {
-  return Array.isArray(equippedItems) && equippedItems.length > 0;
 };
 
 export const isSpecialMission = (missionData: MissionStats | undefined) => {
@@ -750,16 +740,8 @@ export function findMaxLevelForEntity(
   }
 }
 
-export const calculateTotalTaxes = (ownedShips: GenesisShip[]) => {
-  return ownedShips.reduce((sum, ship) => sum + (ship.allTimeTaxPaid || 0), 0);
-};
-
 export const calculateDurability = (tierBonus: number, level?: number) => {
   return ((level || 1) * tierBonus).toFixed(2);
-};
-
-export const calculateTotalTreasure = (ownedShips: GenesisShip[]) => {
-  return ownedShips.reduce((sum, ship) => sum + (ship.reward || 0), 0);
 };
 
 export const shortenSolanaAddress = (address: string, length = 4): string => {
@@ -775,7 +757,7 @@ export const calculateCharacterStrength = (character: CharacterNFT) => {
   const strength =
     baseStrength === 0
       ? (character.level || 1) * (character.shipLevel || 1)
-      : (character.level || 1) * baseStrength ** (character.shipLevel || 1);
+      : (character.level || 1) * baseStrength * (character.shipLevel || 1);
 
   return strength;
 };
