@@ -328,7 +328,7 @@ const InventoryFilters: React.FC<InventoryFiltersProps> = ({
   const renderDesktopFilters = useCallback(
     () => (
       <div className="w-full">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"

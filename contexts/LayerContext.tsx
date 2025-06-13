@@ -372,12 +372,6 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
         hideInModal: false,
       },
       {
-        name: 'upgrade',
-        image: '/images/menu/menu-upgrade.png',
-        disabled: false,
-        hideInModal: false,
-      },
-      {
         name: 'marketplace',
         image: '/images/menu/marketplace.png',
         disabled: false,

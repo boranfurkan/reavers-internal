@@ -189,7 +189,6 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
     dataReady,
   ]);
 
-  // Optimized update for Genesis ships to maintain UI stability
   useEffect(() => {
     if (!genesisShips) return;
 
@@ -448,7 +447,7 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
         ships: ships as ShipNFT[],
         shipsInGame: shipsInGame as ShipNFT[],
         shipsNotInGame: shipsNotInGame as ShipNFT[],
-        genesisShips,
+        genesisShips: concatenatedGenesisShips,
         genesisShipsInGame: genesisShipsInGame as GenesisShipNFT[],
         genesisShipsNotInGame: genesisShipsNotInGame as GenesisShipNFT[],
         loading: false,
@@ -464,8 +463,10 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
     layerContext?.itemsLoading,
     dbNFTsData,
     onChainNFTsData,
-    state.loadedInventory.length,
     nftDataReady,
+    genesisShips,
+    isDbNFTsLoading,
+    isOnChainNFTsLoading,
   ]);
 
   // Handle Active Missions Update

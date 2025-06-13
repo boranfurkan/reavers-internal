@@ -137,7 +137,7 @@ const TreasureLeaderboardNftsTable: React.FC<LeaderboardTableProps> = ({
                 </div>
                 <div className="flex items-center justify-center">
                   <div className="text-center text-[12px] font-semibold">
-                    {'◎' + user.value.toLocaleString()}
+                    {'$' + user.value.toLocaleString()}
                   </div>
                 </div>
                 <div className="flex items-center justify-end">

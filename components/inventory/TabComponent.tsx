@@ -57,8 +57,6 @@ function TabComponent({ handleClose }: any) {
         return <TheArenaLeaderboard />;
       case 'the exchange':
         return <ExchangeComponent />;
-      case 'upgrade':
-        return <UpgradeComponent />;
       default:
         return null;
     }

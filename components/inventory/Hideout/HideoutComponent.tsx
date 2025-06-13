@@ -35,6 +35,11 @@ const HideoutComponent: React.FC = () => {
     return formattedPrice;
   };
 
+  const filteredCoins =
+    hideoutStats?.coins.filter((coin) =>
+      ['SOL', 'BOOTY', 'GOLD', 'RUM'].includes(coin.symbol),
+    ) || [];
+
   return (
     <div className="relative flex h-full w-full flex-col px-4 pt-4 md:px-12">
       <h4 className="text-left font-Header text-3xl font-bold uppercase">
@@ -57,13 +62,17 @@ const HideoutComponent: React.FC = () => {
         </div>
 
         <div className="mb-16 w-full flex-1 overflow-y-auto">
-          {hideoutStats?.coins.map((item, index) => (
+          {filteredCoins.map((item, index) => (
             <Dropdown key={item.symbol} isDefaultOpen={index === 0}>
               <DropdownHeader>
                 <div className="grid w-full grid-cols-4">
                   <div className="flex items-center justify-start gap-2">
                     <Image
-                      src={item.logoURL}
+                      src={
+                        item.symbol == 'SOL'
+                          ? '/images/solana-logo.svg'
+                          : item.logoURL
+                      }
                       alt={`${item.symbol} logo`}
                       width={24}
                       height={24}
