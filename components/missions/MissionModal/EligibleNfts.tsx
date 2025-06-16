@@ -1,20 +1,14 @@
 import { useContext } from 'react';
 import { LayerContext } from '../../../contexts/LayerContext';
 import { Spin } from 'antd';
+import { useNfts } from '../../../contexts/NftContext';
 
 interface EligibleNftsProps {
   onClick: () => void;
-  eligibleCaptains: {
-    eligibleUids: string[];
-  };
   isLoading: boolean;
 }
 
-const EligibleNfts = ({
-  onClick,
-  eligibleCaptains,
-  isLoading,
-}: EligibleNftsProps) => {
+const EligibleNfts = ({ onClick, isLoading }: EligibleNftsProps) => {
   const layerContext = useContext(LayerContext);
 
   if (!layerContext) {
@@ -22,7 +16,8 @@ const EligibleNfts = ({
   }
 
   const { isMobile } = layerContext;
-  const availableCount = eligibleCaptains.eligibleUids.length;
+  const nfts = useNfts();
+  const availableCount = nfts.restingNfts.length;
 
   return (
     <div

@@ -16,11 +16,10 @@ import StrengthDisplay from '../../StrengthDisplay';
 import PlundersBackSide from './PlundersBackSide';
 import EventsBackSide from './EventsBackSide';
 import BurnersBackSide from './BurnersBackSide';
-import { useNfts } from '../../../../contexts/NftContext';
-import { Item } from '../../../../lib/types';
 import { NFTMaxLevels, NFTType } from '../../../../types/BaseEntity';
 import Loading from '../../../Loading';
 import GetIconForEntitiy from '../../../GetIconForEntitiy';
+import { ShipRarity } from '../../../../types/Character';
 
 interface MissionCardProps {
   id: string;
@@ -44,7 +43,6 @@ interface MissionCardProps {
 
 const MissionCard: React.FC<MissionCardProps> = React.memo(
   ({
-    id,
     captain,
     missionType,
     currentMission,
@@ -53,7 +51,6 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
     handleClick,
     handleLevelUpCountChange,
     unSelect,
-    payMethod,
     currentGoldPrice,
   }) => {
     const [flipped, setFlipped] = useState(isSelected);
@@ -70,7 +67,7 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
       if (entityType === 'Ship') {
         // Ship type check
         const maxLevel =
-          selectedCaptain?.captain.shipType === 'Common'
+          selectedCaptain?.captain.shipRarity === ShipRarity.Common
             ? NFTMaxLevels.COMMON_SHIP
             : NFTMaxLevels.MYTHIC_SHIP;
 

@@ -90,10 +90,8 @@ const CaptainReplacementMessage: React.FC<{
         </h4>
         <p className="mb-4 font-Body text-sm leading-relaxed text-white/80">
           You will receive a new NFT from{' '}
-          <strong className="text-purple-300">
-            The Seven Seas: Captain's Collection
-          </strong>{' '}
-          with the same image and attributes.
+          <strong className="text-purple-300">The Captain's Club</strong> with
+          the same image and attributes.
         </p>
         <div className="flex items-center gap-3 rounded-lg border border-purple-400/30 bg-purple-500/20 p-3">
           <div className="h-16 w-16 overflow-hidden rounded border border-purple-400/50">

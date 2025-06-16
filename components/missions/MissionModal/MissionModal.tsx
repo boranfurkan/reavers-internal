@@ -15,7 +15,7 @@ import _backgroundStyles from '../../../data/bg-styles.json';
 import { Timestamp } from 'firebase/firestore';
 
 import { isSpecialMission } from '../../../utils/helpers';
-import { useGetEligibleCaptains } from '../../../hooks/api/missions/useGetEligibleCaptains';
+
 import ModalCloseButton from '../../HUD/modals/ModalCloseButton';
 
 const Modal = styled.div`
@@ -56,10 +56,6 @@ const MissionModal: React.FC = () => {
   } = layerContext;
 
   const { filteredActiveMissions } = nfts;
-
-  const { eligibleCaptains, isLoading, mutate } = useGetEligibleCaptains({
-    missionName: currentMission?.missionStats?.name,
-  });
 
   const [isSelectModalOpen, setSelectModalOpen] = useState(false);
   const [bgStyle, setBgStyle] = useState<CSSProperties | undefined>(undefined);
@@ -147,8 +143,6 @@ const MissionModal: React.FC = () => {
               onClose={() => {
                 setSelectModalOpen(false);
               }}
-              eligibleCaptains={eligibleCaptains}
-              isLoading={isLoading}
               usdcGoldPrice={pricesData.usdc_gold_price}
             />
           ) : (
@@ -190,11 +184,8 @@ const MissionModal: React.FC = () => {
                         onClick={() => {
                           setSelectModalOpen(true);
                         }}
-                        eligibleCaptains={eligibleCaptains}
                         isLoading={
-                          !currentMission?.missionStats?.name ||
-                          isLoading ||
-                          nfts.loading
+                          !currentMission?.missionStats?.name || nfts.loading
                         }
                       />
                       {filteredActiveMissions.length == 0 && (
@@ -214,7 +205,7 @@ const MissionModal: React.FC = () => {
                           isMobile &&
                           '!bottom-[11px] !left-[8em] !m-0 !scale-[0.764]'
                         }`}>
-                        <ClaimSlider eligibleCaptainsMutation={mutate} />
+                        <ClaimSlider />
                       </div>
                     )}
                   </div>

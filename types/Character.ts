@@ -25,7 +25,12 @@ export interface Character extends BaseEntity {
   shipLevel: number;
   crewLevel: number;
   itemLevel: number;
-  shipType: 'Mythic' | 'Common';
+  shipRarity: ShipRarity;
+}
+
+export enum ShipRarity {
+  Common = 'COMMON',
+  Legendary = 'LEGENDARY',
 }
 
 interface StakeStatus {

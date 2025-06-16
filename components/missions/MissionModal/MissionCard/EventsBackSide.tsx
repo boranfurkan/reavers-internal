@@ -13,7 +13,7 @@ import {
   getLevelRarity,
   getRarityColorWithOpacity,
 } from '../../../../utils/helpers';
-import { NFTType, NFTMaxLevels } from '../../../../types/BaseEntity';
+import { NFTType } from '../../../../types/BaseEntity';
 import ArrowRightIcon from '../../../../assets/arrow-right-icon';
 import PlusIcon from '../../../../assets/plus-icon';
 import MinusIcon from '../../../../assets/minus-icon';
@@ -81,6 +81,10 @@ const EventsBackSide = ({
     return entityToBeUpgraded.maxLevel - entityToBeUpgraded.level;
   }, [entityToBeUpgraded.level, entityToBeUpgraded.maxLevel]);
 
+  const isAlreadyMaxLevel = useMemo(() => {
+    return entityToBeUpgraded.level >= entityToBeUpgraded.maxLevel;
+  }, [entityToBeUpgraded.level, entityToBeUpgraded.maxLevel]);
+
   const handleAmountChange = useCallback(
     (value: number) => {
       const newAmount = amount + value;
@@ -89,7 +93,12 @@ const EventsBackSide = ({
       setAmount(newAmount);
       handleLevelUpCountChange(entityToBeUpgraded.uid, newAmount);
     },
-    [amount, handleLevelUpCountChange, entityToBeUpgraded.uid],
+    [
+      amount,
+      handleLevelUpCountChange,
+      entityToBeUpgraded.uid,
+      maxPossibleLevelUp,
+    ],
   );
 
   const handleMaxLevel = useCallback(() => {
@@ -127,7 +136,7 @@ const EventsBackSide = ({
           {/* MAX button in top right corner */}
           <button
             onClick={handleMaxLevel}
-            disabled={amount >= maxPossibleLevelUp}
+            disabled={amount >= maxPossibleLevelUp || isAlreadyMaxLevel}
             className="absolute right-1 top-1 z-10 rounded bg-opacity-80 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white transition-all duration-200 hover:bg-opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
             style={{ backgroundColor: getColor(70) }}>
             MAX
@@ -143,7 +152,7 @@ const EventsBackSide = ({
           <button
             onClick={() => handleAmountChange(-1)}
             className="flex h-full w-10 min-w-10 items-center justify-center rounded-bl-md border border-t-0 text-lg font-bold text-white transition-colors duration-300 ease-in-out hover:bg-opacity-50 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={amount <= 1}
+            disabled={amount <= 1 || isAlreadyMaxLevel}
             style={{
               background: buttonBackground,
               borderColor: buttonBorder,
@@ -154,8 +163,8 @@ const EventsBackSide = ({
           <div className="flex h-full w-full flex-col justify-between p-1 text-center">
             <p className="text-sm font-semibold uppercase">
               {entityToBeUpgraded.type === NFTType.QM ||
-              NFTType.FM ||
-              NFTType.UNIQUE
+              entityToBeUpgraded.type === NFTType.FM ||
+              entityToBeUpgraded.type === NFTType.UNIQUE
                 ? 'Captain'
                 : entityToBeUpgraded.type}
             </p>
@@ -164,59 +173,82 @@ const EventsBackSide = ({
                 Level {entityToBeUpgraded.level}
               </p>
 
-              <div className="flex flex-row items-center justify-center -space-x-2">
-                <ArrowRightIcon className="h-4 w-4 text-white opacity-30" />
-                <ArrowRightIcon className="h-4 w-4 text-white opacity-50" />
-                <ArrowRightIcon className="h-4 w-4 text-white" />
-              </div>
+              {!isAlreadyMaxLevel && (
+                <>
+                  <div className="flex flex-row items-center justify-center -space-x-2">
+                    <ArrowRightIcon className="h-4 w-4 text-white opacity-30" />
+                    <ArrowRightIcon className="h-4 w-4 text-white opacity-50" />
+                    <ArrowRightIcon className="h-4 w-4 text-white" />
+                  </div>
 
-              <p className="text-xs font-semibold text-gray-300">
-                Level {entityToBeUpgraded.level + amount}
-              </p>
+                  <p className="text-xs font-semibold text-gray-300">
+                    Level {entityToBeUpgraded.level + amount}
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="flex w-full items-center justify-around">
-              <div className="flex flex-col items-center justify-center gap-1">
-                <h5 className="text-xs font-bold uppercase text-gray-300">
-                  Cost
-                </h5>
-                <span className="text-xs font-semibold text-gray-300">
-                  <span className="inline-block min-w-[4ch] text-right">
-                    {(
-                      BootyCostMultiplier[missionName] *
-                      getCostForLevelUp(
-                        entityToBeUpgraded.type,
-                        currentGoldPrice,
-                        entityToBeUpgraded.level,
-                        entityToBeUpgraded.level + amount,
-                      )
-                    ).toFixed(2)}
-                  </span>{' '}
-                  $GOLD
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center gap-1">
-                <h5 className="text-xs font-bold uppercase text-gray-300">
-                  Duration
-                </h5>
-                <span className="text-xs font-semibold text-gray-300">
-                  {formatHoursToHMS(
-                    DurationMultiplier[missionName] *
-                      calculateEndtimeForEvents(
-                        entityToBeUpgraded.type,
-                        entityToBeUpgraded.level,
-                        entityToBeUpgraded.level + amount,
-                      ),
-                  )}
-                </span>
-              </div>
+              {isAlreadyMaxLevel ? (
+                <div className="flex w-full flex-col items-center justify-center gap-2">
+                  <h5 className="text-sm font-bold uppercase text-gray-300">
+                    Already Max Level
+                  </h5>
+                  <span className="text-xs font-semibold text-gray-400">
+                    This{' '}
+                    {entityToBeUpgraded.type === NFTType.QM ||
+                    entityToBeUpgraded.type === NFTType.FM ||
+                    entityToBeUpgraded.type === NFTType.UNIQUE
+                      ? 'Captain'
+                      : entityToBeUpgraded.type.toLowerCase()}{' '}
+                    cannot be upgraded further
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <h5 className="text-xs font-bold uppercase text-gray-300">
+                      Cost
+                    </h5>
+                    <span className="text-xs font-semibold text-gray-300">
+                      <span className="inline-block min-w-[4ch] text-right">
+                        {(
+                          BootyCostMultiplier[missionName] *
+                          getCostForLevelUp(
+                            entityToBeUpgraded.type,
+                            currentGoldPrice,
+                            entityToBeUpgraded.level,
+                            entityToBeUpgraded.level + amount,
+                          )
+                        ).toFixed(2)}
+                      </span>{' '}
+                      $GOLD
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center gap-1">
+                    <h5 className="text-xs font-bold uppercase text-gray-300">
+                      Duration
+                    </h5>
+                    <span className="text-xs font-semibold text-gray-300">
+                      {formatHoursToHMS(
+                        DurationMultiplier[missionName] *
+                          calculateEndtimeForEvents(
+                            entityToBeUpgraded.type,
+                            entityToBeUpgraded.level,
+                            entityToBeUpgraded.level + amount,
+                          ),
+                      )}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           <button
             onClick={() => handleAmountChange(1)}
             className="flex h-full w-10 min-w-10 items-center justify-center rounded-br-md border border-t-0 text-lg font-bold text-white transition-colors duration-300 ease-in-out hover:bg-opacity-50 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={amount >= maxPossibleLevelUp}
+            disabled={amount >= maxPossibleLevelUp || isAlreadyMaxLevel}
             style={{ background: buttonBackground, borderColor: buttonBorder }}>
             <PlusIcon className="h-5 w-5" fill="white" />
           </button>

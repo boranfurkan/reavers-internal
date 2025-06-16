@@ -19,7 +19,7 @@ export enum NFTMaxLevels {
   QM = 50,
   FM = 50,
   UNIQUE = 100,
-  ITEM = 60,
+  ITEM = 120,
   GENESIS_SHIP = 260,
 }
 

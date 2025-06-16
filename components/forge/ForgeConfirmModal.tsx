@@ -49,8 +49,8 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
             {selectedAsset.type === ForgeTabValue.CAPTAIN && (
               <div className="mb-4 rounded-md border border-purple-400/30 bg-purple-500/20 p-3 sm:mb-6">
                 <p className="font-Body text-xs text-purple-200 sm:text-sm">
-                  You will receive a replacement NFT from The Seven Seas:
-                  Captain's Collection
+                  You will receive a replacement NFT from The Captain's Club
+                  Collection
                 </p>
               </div>
             )}

@@ -6,12 +6,15 @@ import NftSlider from '../NftSlider';
 import ModalCloseButton from '../../HUD/modals/ModalCloseButton';
 import MissionCard from './MissionCard/MissionCard';
 import { CharacterNFT } from '../../../types/NFT';
+import {
+  decideEntitiyToBeUpgraded,
+  findMaxLevelForEntity,
+} from '../../../utils/helpers';
+import { NFTType } from '../../../types/BaseEntity';
 
 interface SelectNftsModalProps {
   onClose: () => void;
-  eligibleCaptains: { eligibleUids: string[] };
   usdcGoldPrice: number;
-  isLoading: boolean;
 }
 
 type SelectedNftType = {
@@ -19,12 +22,7 @@ type SelectedNftType = {
   levelUpCount: number;
 };
 
-const SelectNftsModal = ({
-  onClose,
-  eligibleCaptains,
-  usdcGoldPrice,
-  isLoading,
-}: SelectNftsModalProps) => {
+const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
   const layerContext = useContext(LayerContext);
   const nfts = useNfts();
 
@@ -33,19 +31,6 @@ const SelectNftsModal = ({
   }
 
   const { currentMission, isMobile } = layerContext;
-
-  // Get eligible captains for the mission
-  const nftsEligibleForMission = useMemo(() => {
-    if (nfts.loading || isLoading) return null;
-    return nfts.restingNfts.filter((nft): nft is CharacterNFT =>
-      eligibleCaptains.eligibleUids.includes(nft.uid!),
-    );
-  }, [
-    nfts.loading,
-    isLoading,
-    eligibleCaptains.eligibleUids,
-    nfts.restingNfts,
-  ]);
 
   const [selectedNfts, setSelectedNfts] = useState<SelectedNftType[]>([]);
 
@@ -76,10 +61,37 @@ const SelectNftsModal = ({
     [selectedNfts],
   );
 
-  // Render mission cards for captains
+  const filteredNfts = useMemo(() => {
+    return nfts.restingNfts.filter((nft) => {
+      const mission = currentMission?.name;
+      const entityToBeUpgraded = decideEntitiyToBeUpgraded(mission || '');
+
+      // Determine the correct NFT type for max level calculation
+      let nftTypeForMaxLevel: NFTType;
+      if (entityToBeUpgraded === 'Character') {
+        if (nft.type === NFTType.FM) {
+          nftTypeForMaxLevel = NFTType.FM;
+        } else if (nft.type === NFTType.QM) {
+          nftTypeForMaxLevel = NFTType.QM;
+        } else {
+          nftTypeForMaxLevel = NFTType.UNIQUE;
+        }
+      } else if (entityToBeUpgraded === 'Ship') {
+        nftTypeForMaxLevel = NFTType.SHIP;
+      } else {
+        nftTypeForMaxLevel = NFTType.CREW;
+      }
+
+      const maxPossibleLevel = findMaxLevelForEntity(nftTypeForMaxLevel);
+      const currentLevel = nft.level || 1;
+
+      return currentLevel < maxPossibleLevel;
+    });
+  }, [nfts.restingNfts, currentMission?.name]);
+
   const renderCaptainMissionCards = useMemo(
     () =>
-      nftsEligibleForMission?.map((reaver, index) => (
+      filteredNfts?.map((reaver, index) => (
         <MissionCard
           id={`mission-card-${reaver.uid}`}
           key={`mission-modal-${reaver.uid}-${index}`}
@@ -96,7 +108,7 @@ const SelectNftsModal = ({
         />
       )),
     [
-      nftsEligibleForMission,
+      nfts.restingNfts,
       usdcGoldPrice,
       currentMission,
       selectedNfts,
@@ -134,7 +146,7 @@ const SelectNftsModal = ({
         className={`flex h-[calc(100%_-_92px)] w-full rounded-lg border border-white border-opacity-[0.20] ${
           isMobile && '!h-[calc(100%_-_50px)] !border-b-2'
         }`}>
-        {isLoading || nfts.loading || !nftsEligibleForMission ? (
+        {nfts.loading || !nfts.restingNfts ? (
           <div className="flex h-full w-full items-center justify-center">
             <Spin />
           </div>
@@ -163,7 +175,7 @@ const SelectNftsModal = ({
                 minTeamLength={1}
                 setSelectedNfts={setSelectedNfts}
                 selectedNfts={selectedNfts}
-                nftsEligibleForMission={nftsEligibleForMission}
+                nftsEligibleForMission={nfts.restingNfts}
                 onSelect={onClose}
               />
             )}

@@ -21,6 +21,11 @@ export const useTreasureLeaderboardUsers = (limit: number = 10) => {
       : null;
 
   const getKey = (pageIndex: number) => {
+    // Return null if endpoint is null - this prevents SWR from making requests
+    if (!endpoint || !jwtToken) {
+      return null;
+    }
+
     return {
       url: endpoint,
       method: 'POST',

@@ -21,7 +21,10 @@ export const useTreasureLeaderboardNfts = (limit: number = 10) => {
       : null;
 
   const getKey = (pageIndex: number) => {
-    if (!endpoint) return null;
+    // Return null if endpoint is null - this prevents SWR from making requests
+    if (!endpoint || !jwtToken) {
+      return null;
+    }
 
     return {
       url: endpoint,
@@ -42,12 +45,12 @@ export const useTreasureLeaderboardNfts = (limit: number = 10) => {
       getKey,
       (requestData) =>
         fetcher({
-          url: requestData.url || '',
+          url: requestData.url!,
           method: requestData.method,
           headers: requestData.headers,
           body: requestData.body,
         }),
-      { refreshInterval: 120000, revalidateOnFocus: false }, // Removed 'enabled' property
+      { refreshInterval: 120000, revalidateOnFocus: false },
     );
 
   return {

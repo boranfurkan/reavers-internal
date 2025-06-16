@@ -573,7 +573,7 @@ export const getCostForLevelUp = (
         const bootyCost = Math.round(usdcCost * goldUsdPrice);
         totalBootyCost += bootyCost;
       } else {
-        throw new Error(`Couldn't fetch costs for ${type} at level ${level}`);
+        console.error(`Couldn't fetch costs for ${type} at level ${level}`);
       }
     }
 

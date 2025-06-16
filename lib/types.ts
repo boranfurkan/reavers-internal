@@ -58,9 +58,9 @@ export interface User {
   treasureAmount: number;
   fleetCommanderLevel: number;
 
-  shipTokens: number;
-  crewTokens: number;
-  itemTokens: number;
+  shipLevelToken: number;
+  crewLevelToken: number;
+  itemLevelToken: number;
 }
 
 interface BaseLeaderboardTreasureResponse {

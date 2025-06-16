@@ -49,7 +49,7 @@ export const useForgeLogic = ({
           shipTokens: 0,
           crewTokens: 0,
           itemTokens: 0,
-          goldTokens: goldBonus * 10,
+          goldTokens: 0,
         };
       case ForgeTabValue.SHIP:
         return {
@@ -215,7 +215,7 @@ export const useForgeLogic = ({
       let successMessage = `Successfully burned ${selectedAsset.name}! `;
 
       if (selectedAsset.type === ForgeTabValue.CAPTAIN) {
-        successMessage += `You will receive a new NFT from The Seven Seas: Captain's Collection. `;
+        successMessage += `You will receive a new NFT from The Captain's Club Collection. `;
       }
 
       const rewardParts = [];

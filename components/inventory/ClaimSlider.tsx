@@ -12,11 +12,7 @@ import { NotificationContext } from '../../contexts/NotificationContext';
 import { Popconfirm } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 
-interface ClaimSliderProps {
-  eligibleCaptainsMutation: () => void;
-}
-
-function ClaimSlider({ eligibleCaptainsMutation }: ClaimSliderProps) {
+function ClaimSlider() {
   const layerContext = useContext(LayerContext);
   const { notifications } = useContext(NotificationContext);
 
@@ -193,7 +189,7 @@ function ClaimSlider({ eligibleCaptainsMutation }: ClaimSliderProps) {
       Promise.all([
         mutate(`${config.worker_server_url}/missions/active-missions`),
         mutate(`${config.worker_server_url}/nfts`),
-        eligibleCaptainsMutation(),
+        ,
         new Promise((resolve) =>
           setTimeout(() => {
             Promise.all([
@@ -216,7 +212,6 @@ function ClaimSlider({ eligibleCaptainsMutation }: ClaimSliderProps) {
         // Batch timeout mutations
         Promise.all([
           mutate(`${config.worker_server_url}/missions/active-missions`),
-          eligibleCaptainsMutation(),
           mutate(`${config.worker_server_url}/nfts`),
           mutate(`${config.worker_server_url}/items/fetch-items`),
         ]).catch((error) => {
