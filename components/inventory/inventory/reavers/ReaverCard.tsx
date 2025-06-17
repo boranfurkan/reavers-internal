@@ -1,14 +1,14 @@
 import React, { memo, useContext, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 
 import { LayerContext } from '../../../../contexts/LayerContext';
 import { CharacterNFT } from '../../../../types/NFT';
 import { NFTMaxLevels } from '../../../../types/BaseEntity';
+import { ShipRarity } from '../../../../types/Character';
 import { cn } from '../../../../utils/helpers';
 import {
-  getRarityGradient,
   getStrengthBorderColor,
   getStrengthColor,
   getStrengthPercentage,
@@ -21,9 +21,11 @@ import ItemsIcon from '../../../../assets/items-icon';
 import CrewIcon from '../../../../assets/crew-icon';
 import ShipIcon from '../../../../assets/ship-icon';
 import LevelUpModal from '../../LevelUpModal';
-import { ShipRarity } from '../../../../types/Character';
+import CaptainLevelUpModal from '../../CaptainLevelUpModal';
+import LegendaryShipTokenIcon from '../../../../assets/legendary-ship-token-icon';
+import { useMythicShipUpgrade } from '../../../../hooks/api/inventory/useMythicShipUpgrade';
 
-// Enhanced animation variants
+// Animation variants
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -39,14 +41,10 @@ const cardVariants = {
   hover: {
     y: -5,
     scale: 1.01,
-    transition: {
-      duration: 0.2,
-      ease: 'easeOut',
-    },
+    transition: { duration: 0.2, ease: 'easeOut' },
   },
 };
 
-// Child element animation variants
 const itemVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: {
@@ -64,25 +62,7 @@ const fadeInVariants = {
   },
 };
 
-const fadeInLeftVariants = {
-  hidden: { opacity: 0, x: -15 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.3 },
-  },
-};
-
-const fadeInRightVariants = {
-  hidden: { opacity: 0, x: 15 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.3 },
-  },
-};
-
-// Enhanced Level display component with plus icon
+// Level display component
 type LevelDisplayProps = {
   icon: React.ReactNode;
   level: number;
@@ -91,6 +71,7 @@ type LevelDisplayProps = {
   onLevelUp: () => void;
   entityType: 'ship' | 'crew' | 'item';
   hasTokens: boolean;
+  isMaxLevel: boolean;
 };
 
 const LevelDisplay = ({
@@ -101,16 +82,20 @@ const LevelDisplay = ({
   onLevelUp,
   entityType,
   hasTokens,
+  isMaxLevel,
 }: LevelDisplayProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Debug log
-  console.log(`${label} (${entityType}) - hasTokens:`, hasTokens);
-
-  // Debug log
-  React.useEffect(() => {
-    console.log(`${label} (${entityType}) - hasTokens:`, hasTokens);
-  }, [hasTokens, label, entityType]);
+  const getButtonColor = () => {
+    switch (entityType) {
+      case 'ship':
+        return 'bg-blue-600 hover:bg-blue-700';
+      case 'crew':
+        return 'bg-green-600 hover:bg-green-700';
+      case 'item':
+        return 'bg-purple-600 hover:bg-purple-700';
+    }
+  };
 
   return (
     <motion.div
@@ -127,22 +112,16 @@ const LevelDisplay = ({
       </span>
       <span className="text-sm font-bold text-white sm:text-base">{level}</span>
 
-      {/* Plus Icon - only show if user has tokens */}
-      {hasTokens && (
+      {hasTokens && !isMaxLevel && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            console.log(`Plus button clicked for ${entityType}`);
             onLevelUp();
           }}
-          className={`absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 transition-all duration-200 ${
-            entityType === 'ship'
-              ? 'bg-blue-600 hover:bg-blue-700'
-              : entityType === 'crew'
-              ? 'bg-green-600 hover:bg-green-700'
-              : 'bg-purple-600 hover:bg-purple-700'
-          } ${isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-90'}`}
-          title={`Level up ${label} (${entityType})`}>
+          className={`absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 transition-all duration-200 ${getButtonColor()} ${
+            isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-90'
+          }`}
+          title={`Level up ${label}`}>
           <Plus className="h-3 w-3 text-white" />
         </button>
       )}
@@ -159,18 +138,6 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   const layerContext = useContext(LayerContext);
   const { user } = useUser();
 
-  // Debug: Log token counts to console
-  React.useEffect(() => {
-    if (user) {
-      console.log('User tokens:', {
-        shipTokens: user.shipLevelToken,
-        crewTokens: user.crewLevelToken,
-        itemTokens: user.itemLevelToken,
-      });
-    }
-  }, [user]);
-
-  // Level up modal state
   const [levelUpModal, setLevelUpModal] = useState<{
     isOpen: boolean;
     entityType: 'ship' | 'crew' | 'item' | null;
@@ -179,30 +146,29 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     entityType: null,
   });
 
+  const [captainLevelUpModal, setCaptainLevelUpModal] = useState(false);
+
+  // Use the mythic ship upgrade hook
+  const { upgradeMythicShip, loading: mythicUpgradeLoading } =
+    useMythicShipUpgrade();
+
   if (!layerContext) {
     throw new Error('ReaverCard must be used within a LayerProvider');
   }
 
   const isOnMission = character.currentMission !== '';
 
-  // Style helpers
+  // Helper functions
   const getCardColor = () => {
-    const strengthPercentage = getStrengthPercentage(
-      character.strength || 0,
-      character,
-    );
+    const strengthPercentage = getStrengthPercentage(character.strength || 0);
     return getStrengthColor(strengthPercentage);
   };
 
   const getBorderColor = () => {
-    const strengthPercentage = getStrengthPercentage(
-      character.strength || 0,
-      character,
-    );
+    const strengthPercentage = getStrengthPercentage(character.strength || 0);
     return getStrengthBorderColor(strengthPercentage);
   };
 
-  // Calculate level percentage for progress bar
   const getLevelPercentage = () => {
     const level = character.level || 1;
     let maxLevel = NFTMaxLevels.QM;
@@ -217,7 +183,7 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   };
 
   const getCharacterName = () => {
-    if (!character || !character.metadata) return '';
+    if (!character?.metadata) return '';
     const nameParts = character.metadata.name.split('#');
     return nameParts.length > 1 ? `#${nameParts[1]}` : character.metadata.name;
   };
@@ -240,36 +206,74 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     }
   };
 
-  // Level up handlers
+  const getCaptainMaxLevel = () => {
+    if (character.type === 'FM') return NFTMaxLevels.FM;
+    if (character.type === '1/1') return NFTMaxLevels.UNIQUE;
+    return NFTMaxLevels.QM;
+  };
+
+  const getTokenCount = (entityType: 'ship' | 'crew' | 'item'): number => {
+    if (!user) return 0;
+    switch (entityType) {
+      case 'ship':
+        return user.shipLevelToken;
+      case 'crew':
+        return user.crewLevelToken;
+      case 'item':
+        return user.itemLevelToken;
+      default:
+        return 0;
+    }
+  };
+
+  // Check if user has enough legendary ship tokens for mythic upgrade
+  const canUpgradeToMythic = () => {
+    return (user?.legendaryShipToken || 0) >= 2;
+  };
+
+  // Event handlers
   const handleLevelUpClick = (entityType: 'ship' | 'crew' | 'item') => {
-    setLevelUpModal({
-      isOpen: true,
-      entityType,
-    });
+    setLevelUpModal({ isOpen: true, entityType });
   };
 
   const handleCloseLevelUpModal = () => {
-    setLevelUpModal({
-      isOpen: false,
-      entityType: null,
-    });
+    setLevelUpModal({ isOpen: false, entityType: null });
   };
 
-  const handleLevelUpConfirm = (tokensToUse: number) => {
+  const handleLevelUpConfirm = async (tokensToUse: number) => {
     if (!levelUpModal.entityType) return;
-
     console.log(
       `Leveling up ${levelUpModal.entityType} by ${tokensToUse} levels for character ${character.uid}`,
     );
   };
 
-  // Get current modal data
+  const handleCaptainLevelUpClick = () => {
+    setCaptainLevelUpModal(true);
+  };
+
+  const handleCaptainLevelUpClose = () => {
+    setCaptainLevelUpModal(false);
+  };
+
+  const handleMythicShipUpgrade = async () => {
+    if (!character.uid && !character.id) {
+      console.error('Character ID is missing');
+      return;
+    }
+
+    const captainId = character.uid || character.id || '';
+    const captainName = character.metadata?.name || 'Captain';
+
+    await upgradeMythicShip(captainId, captainName);
+  };
+
+  // Modal data
   const getCurrentModalData = () => {
     if (!levelUpModal.entityType) return null;
 
     let currentLevel = 0;
     let entityName = '';
-    let entityImage = character.metadata?.image || '/images/reavers.webp';
+    const entityImage = character.metadata?.image || '/images/reavers.webp';
 
     switch (levelUpModal.entityType) {
       case 'ship':
@@ -286,21 +290,7 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
         break;
     }
 
-    const getTokenCount = (entityType: 'ship' | 'crew' | 'item'): number => {
-      if (!user) return 0;
-      switch (entityType) {
-        case 'ship':
-          return user.shipLevelToken || 0;
-        case 'crew':
-          return user.crewLevelToken || 0;
-        case 'item':
-          return user.itemLevelToken || 0;
-        default:
-          return 0;
-      }
-    };
-
-    const availableTokens = getTokenCount(levelUpModal.entityType) || 100;
+    const availableTokens = getTokenCount(levelUpModal.entityType);
     const maxLevel = getMaxLevel(
       levelUpModal.entityType,
       character.shipRarity === ShipRarity.Legendary,
@@ -308,10 +298,10 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
 
     return {
       currentLevel,
-      maxLevel,
-      availableTokens,
       entityName,
       entityImage,
+      availableTokens,
+      maxLevel,
     };
   };
 
@@ -320,17 +310,18 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   return (
     <>
       <motion.div
-        key={character.uid}
         variants={cardVariants}
         initial="hidden"
         animate="visible"
         whileHover="hover"
         className={cn(
-          `relative mx-auto w-full max-w-lg overflow-hidden rounded-lg border border-white/20`,
+          'relative cursor-pointer overflow-hidden rounded-lg border p-3 shadow-lg transition-all duration-300 sm:p-4',
+          getBorderColor(),
+          getCardColor(),
+          isOnMission && 'opacity-60',
         )}
-        style={{ ...getCardColor(), ...getBorderColor() }}
-        data-mint={character.mint}>
-        {/* Glass overlay with subtle animation */}
+        style={{ ...getCardColor(), ...getBorderColor() }}>
+        {/* Glass overlay */}
         <motion.div
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           animate={{
@@ -347,46 +338,29 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
           }}
         />
 
-        {/* Mission overlay when on mission */}
-        {isOnMission && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/30 p-4 text-center backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-col items-center gap-3">
-              <div className="text-sm font-bold uppercase text-white">
-                Captain is on mission
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {/* Card Content with staggered animations */}
-        <div className="relative z-10 flex flex-col gap-3 p-3">
-          {/* Header section with character info */}
-          <div className="mb-2 flex items-center justify-between border-b border-white/20 pb-2">
-            <motion.div
-              variants={fadeInLeftVariants}
-              className="flex items-center gap-1 sm:gap-2">
-              <h3 className="text-sm font-bold text-white sm:text-lg">
-                {character.type} {getCharacterName()}
+        {/* Content */}
+        <div className="relative z-10">
+          {/* Header */}
+          <motion.div
+            variants={fadeInVariants}
+            className="mb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-white sm:text-base">
+                {getCharacterName()}
               </h3>
-            </motion.div>
-
-            <motion.div
-              variants={fadeInRightVariants}
-              className="flex items-center gap-1 sm:gap-2">
-              <div className="flex flex-col items-end">
-                <span className="text-[8px] text-white/60 sm:text-[10px]">
-                  Level
-                </span>
-                <span className="text-sm font-bold text-white sm:text-base">
+              <p className="text-[10px] uppercase text-white/70 sm:text-xs">
+                {character.type || 'Captain'}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="text-right">
+                <span className="text-lg font-bold text-white sm:text-xl">
                   {character.level || 1}
                 </span>
+                <p className="text-[8px] uppercase text-white/70 sm:text-[10px]">
+                  Level
+                </p>
               </div>
-
-              {/* Level progress indicator */}
               <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-black/30 p-0.5 sm:h-7 sm:w-7">
                 <div
                   className="h-full w-full rounded-full"
@@ -395,21 +369,21 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
                   }}
                 />
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
 
-          {/* Main content area - Balanced grid layout */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-12 sm:gap-3">
-            {/* Character Image - 1/3 of the width (4 cols out of 12) */}
+          {/* Main content grid */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-12 sm:gap-4">
+            {/* Character image */}
             <motion.div
-              variants={fadeInVariants}
-              className="col-span-1 overflow-hidden rounded-md bg-black/50 sm:col-span-4">
-              <div className="relative aspect-square h-full w-full sm:aspect-[3/4]">
+              variants={itemVariants}
+              className="col-span-1 sm:col-span-4">
+              <div className="relative aspect-[3/4] overflow-visible rounded-md">
                 <Image
                   src={character.metadata?.image || '/images/reavers.webp'}
                   alt={character.metadata?.name || 'Captain'}
                   fill
-                  className="object-cover"
+                  className="rounded-lg object-cover"
                   unoptimized
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-black/80 px-1 py-0.5 text-center">
@@ -417,12 +391,26 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
                     {character.type || 'Captain'}
                   </span>
                 </div>
+
+                {/* Captain Level Up Button */}
+                {(user?.arAmount || 0) > 0 &&
+                  (character.level || 1) < getCaptainMaxLevel() && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCaptainLevelUpClick();
+                      }}
+                      className="absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-yellow-600 transition-all duration-200 hover:scale-110 hover:bg-yellow-700"
+                      title="Level up Captain">
+                      <Plus className="h-3 w-3 text-white" />
+                    </button>
+                  )}
               </div>
             </motion.div>
 
-            {/* Level displays - 2/3 of the width (8 cols out of 12) */}
+            {/* Level displays */}
             <div className="col-span-1 flex flex-col justify-between sm:col-span-8">
-              {/* Ship and Crew levels - Top section */}
+              {/* Ship and Crew levels */}
               <div className="mb-2 grid grid-cols-2 gap-2">
                 <LevelDisplay
                   icon={<ShipIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
@@ -431,7 +419,13 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
                   animationDelay={0.1}
                   onLevelUp={() => handleLevelUpClick('ship')}
                   entityType="ship"
-                  hasTokens={(user?.shipLevelToken || 0) > 0 || true} // Temporary: always show for testing
+                  hasTokens={getTokenCount('ship') > 0}
+                  isMaxLevel={
+                    (character.shipRarity === ShipRarity.Legendary &&
+                      (character.shipLevel || 0) >= NFTMaxLevels.MYTHIC_SHIP) ||
+                    (character.shipRarity !== ShipRarity.Legendary &&
+                      (character.shipLevel || 0) >= NFTMaxLevels.COMMON_SHIP)
+                  }
                 />
                 <LevelDisplay
                   icon={<CrewIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
@@ -440,11 +434,12 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
                   animationDelay={0.2}
                   onLevelUp={() => handleLevelUpClick('crew')}
                   entityType="crew"
-                  hasTokens={(user?.crewLevelToken || 0) > 0 || true} // Temporary: always show for testing
+                  hasTokens={getTokenCount('crew') > 0}
+                  isMaxLevel={(character.crewLevel || 0) >= NFTMaxLevels.CREW}
                 />
               </div>
 
-              {/* Item level - Bottom section */}
+              {/* Item level */}
               <div className="grid grid-cols-1 gap-2">
                 <LevelDisplay
                   icon={<ItemsIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
@@ -453,13 +448,61 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
                   animationDelay={0.3}
                   onLevelUp={() => handleLevelUpClick('item')}
                   entityType="item"
-                  hasTokens={(user?.itemLevelToken || 0) > 0 || true} // Temporary: always show for testing
+                  hasTokens={getTokenCount('item') > 0}
+                  isMaxLevel={(character.itemLevel || 0) >= NFTMaxLevels.ITEM}
                 />
               </div>
             </div>
           </div>
 
-          {/* Footer with stats */}
+          <motion.div variants={itemVariants} className="mt-3">
+            {/* Ship Rarity Display */}
+            <div className="flex items-center justify-between rounded-md border border-white/20 bg-black/30 p-2 sm:p-3">
+              <span className="text-[10px] uppercase text-white/70 sm:text-[12px]">
+                Ship Rarity
+              </span>
+              {character.shipRarity === ShipRarity.Legendary ? (
+                <span className="text-sm font-semibold text-yellow-700 sm:text-base">
+                  Mythic
+                </span>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMythicShipUpgrade();
+                  }}
+                  disabled={!canUpgradeToMythic() || mythicUpgradeLoading}
+                  className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold transition-all duration-200 ${
+                    canUpgradeToMythic() && !mythicUpgradeLoading
+                      ? 'border-yellow-700 bg-yellow-700/60 text-white hover:bg-yellow-700'
+                      : 'cursor-not-allowed border-gray-600 bg-gray-600/60 text-gray-400'
+                  }`}
+                  title={
+                    !canUpgradeToMythic()
+                      ? 'Need 2 Legendary Ship Tokens'
+                      : 'Upgrade to Mythic Ship'
+                  }>
+                  <div className="flex items-center gap-1">
+                    {mythicUpgradeLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <>
+                        <span>2X</span>
+                        <LegendaryShipTokenIcon className="h-3 w-3" />
+                      </>
+                    )}
+                    <span>
+                      {mythicUpgradeLoading
+                        ? 'Upgrading...'
+                        : 'for Mythic Ship'}
+                    </span>
+                  </div>
+                </button>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Footer */}
           <motion.div
             variants={itemVariants}
             className="mt-3 flex items-center justify-between border-t border-white/20 pt-3"
@@ -467,7 +510,6 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.3 }}>
             <GoldBarDisplay goldBurned={character.goldBurned} />
-
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="text-[10px] uppercase text-white/70 sm:text-xs">
                 Strength
@@ -480,6 +522,21 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
             </div>
           </motion.div>
         </div>
+
+        {/* Mission overlay */}
+        {isOnMission && (
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/30 p-4 text-center backdrop-blur-[2px]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center gap-3">
+              <div className="text-sm font-bold uppercase text-white">
+                Captain is on mission
+              </div>
+            </motion.div>
+          </div>
+        )}
       </motion.div>
 
       {/* Level Up Modal */}
@@ -493,7 +550,21 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
           availableTokens={modalData.availableTokens}
           entityName={modalData.entityName}
           entityImage={modalData.entityImage}
+          captainId={character.uid || character.id || ''}
           onLevelUp={handleLevelUpConfirm}
+        />
+      )}
+
+      {/* Captain Level Up Modal */}
+      {captainLevelUpModal && (
+        <CaptainLevelUpModal
+          isOpen={captainLevelUpModal}
+          onClose={handleCaptainLevelUpClose}
+          currentLevel={character.level || 1}
+          maxLevel={getCaptainMaxLevel()}
+          captainName={character.metadata?.name || 'Captain'}
+          captainImage={character.metadata?.image || '/images/reavers.webp'}
+          captainId={character.uid || character.id || ''}
         />
       )}
     </>

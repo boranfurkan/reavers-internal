@@ -30,40 +30,40 @@ export const RARITY_COLORS = {
   },
 };
 
-// Strength percentage brackets and corresponding colors
+// FIXED: Restored original strength percentage brackets
 export const STRENGTH_COLORS = {
   MYTHIC: {
-    threshold: 70, // 70% and above
+    threshold: 100, // 70% and above - RESTORED
     gradient: 'linear-gradient(to right, #0f172a, #a21caf)', // purple-950 to fuchsia-700
     border: '#a21caf', // fuchsia-700
     text: '#e879f9', // bright purple
   },
   LEGENDARY: {
-    threshold: 40, // 40-70%
+    threshold: 75, // 40-70% - RESTORED
     gradient: 'linear-gradient(to right, #d97706, #eab308)', // amber-600 to yellow-500
     border: '#eab308', // yellow-500
     text: '#fde047', // bright yellow
   },
   EPIC: {
-    threshold: 15, // 15-40%
+    threshold: 50, // 15-40% - RESTORED
     gradient: 'linear-gradient(to right, #5b21b6, #9333ea)', // violet-800 to purple-600
     border: '#a855f7', // purple-500
     text: '#c084fc', // bright purple
   },
   RARE: {
-    threshold: 5, // 5-15%
+    threshold: 25, // 5-15% - RESTORED
     gradient: 'linear-gradient(to right, #1e40af, #2563eb)', // blue-800 to blue-600
     border: '#3b82f6', // blue-500
     text: '#60a5fa', // bright blue
   },
   UNCOMMON: {
-    threshold: 1, // 1-5%
+    threshold: 10, // 1-5% - RESTORED
     gradient: 'linear-gradient(to right, #065f46, #16a34a)', // emerald-800 to green-600
     border: '#22c55e', // green-500
     text: '#4ade80', // bright green
   },
   COMMON: {
-    threshold: 0, // 0-1%
+    threshold: 5, // 0-1% - RESTORED
     gradient: 'linear-gradient(to right, #374151, #4b5563)', // gray-700 to gray-600
     border: '#9ca3af', // gray-400
     text: '#e5e7eb', // bright gray
@@ -148,36 +148,6 @@ export const animations = {
 };
 
 /**
- * Extract entity type and ID from equippedTo string
- * @param equippedTo The equippedTo path string
- * @returns Object containing entity type and ID
- */
-const getEquippedEntityInfo = (equippedTo: string | undefined) => {
-  if (!equippedTo) return { type: 'Unknown', id: 'Unknown' };
-
-  const parts = equippedTo.split('/');
-  if (parts.length !== 2) return { type: 'Unknown', id: 'Unknown' };
-
-  // Map the path to an entity type
-  const entityTypeMap: Record<string, string> = {
-    reaver: 'Captain',
-    ship: 'Ship',
-    crew: 'Crew',
-  };
-
-  // Extract type from path using the mapping
-  const pathLower = parts[0].toLowerCase();
-  const entityType =
-    Object.keys(entityTypeMap).find((key) => pathLower.includes(key)) ||
-    'Unknown';
-
-  return {
-    type: entityTypeMap[entityType] || 'Unknown',
-    id: parts[1],
-  };
-};
-
-/**
  * Copy text to clipboard with feedback
  * @param text Text to copy
  * @param toast Toast function for feedback
@@ -191,33 +161,21 @@ export const copyToClipboard = (
 };
 
 /**
+ * FIXED: Restored original getStrengthPercentage function
  * Calculate strength percentage relative to potential maximum
  * @param strength Current strength value
  * @param character Character NFT object
  * @returns Percentage of maximum possible strength (0-100)
  */
-export const getStrengthPercentage = (
-  strength: number,
-  character: CharacterNFT,
-) => {
-  // Calculate theoretical maximum based on character type
-  let maxCharLevel = NFTMaxLevels.QM;
-
-  if (character.type === 'FM') {
-    maxCharLevel = NFTMaxLevels.FM;
-  } else if (character.type === '1/1') {
-    maxCharLevel = NFTMaxLevels.UNIQUE;
-  }
-
-  // Theoretical maximum: Character (level) * (Crew (level) + 2*Items (level)) * Ship (level)
+export const getStrengthPercentage = (strength: number) => {
+  const maxCharLevel = NFTMaxLevels.UNIQUE;
   const maxCrewLevel = NFTMaxLevels.CREW;
-  const maxItemLevel = NFTMaxLevels.ITEM * 2; // Two item slots
+  const maxItemLevel = NFTMaxLevels.ITEM;
   const maxShipLevel = NFTMaxLevels.MYTHIC_SHIP;
 
   const theoreticalMax =
     maxCharLevel * (maxCrewLevel + maxItemLevel) * maxShipLevel;
 
-  // Return percentage (capped at 100%)
   return Math.min((strength / theoreticalMax) * 100, 100);
 };
 
@@ -285,7 +243,12 @@ export const getRarityBorderColor = (rarity: string): React.CSSProperties => {
   };
 };
 
-const getGenesisRarityStyle = (
+/**
+ * Get Genesis ship rarity styling
+ * @param rarity Genesis ship rarity
+ * @returns CSS properties for background and border
+ */
+export const getGenesisRarityStyle = (
   rarity: GenesisShipRarity,
 ): React.CSSProperties => {
   switch (rarity) {

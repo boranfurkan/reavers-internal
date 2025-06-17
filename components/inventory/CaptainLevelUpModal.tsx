@@ -1,30 +1,31 @@
-// components/inventory/LevelUpModal.tsx
+// components/inventory/CaptainLevelUpModal.tsx
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus } from 'lucide-react';
 import { Slider } from 'antd';
 import Image from 'next/image';
+import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { getCostForLevelUp } from '../../utils/helpers';
+import { useContext } from 'react';
+import { LayerContext } from '../../contexts/LayerContext';
+import { NFTType } from '../../types/BaseEntity';
+
+import { UpgradeType } from '../../types/Upgrade';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
-
-import { useAuth } from '../../contexts/AuthContext';
-import { useUser } from '../../contexts/UserContext';
-import { useNotifications } from '../../contexts/NotificationContext';
-import { levelUpEntities } from '../../lib/api/inventory/levelUpEntities';
-import { UpgradeType } from '../../types/Upgrade';
 import { config } from '../../config';
+import { levelUpCaptain } from '../../lib/api/inventory/levelUpCaptain';
 
-interface LevelUpModalProps {
+interface CaptainLevelUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  entityType: 'ship' | 'crew' | 'item';
   currentLevel: number;
   maxLevel: number;
-  availableTokens: number;
-  entityName: string;
-  entityImage: string;
-  captainId: string; // Changed from entityId to captainId
-  onLevelUp?: (tokensToUse: number) => void;
+  captainName: string;
+  captainImage: string;
+  captainId: string;
 }
 
 // Modal animation variants
@@ -61,57 +62,63 @@ const overlayVariants = {
   exit: { opacity: 0 },
 };
 
-const LevelUpModal: React.FC<LevelUpModalProps> = ({
+const CaptainLevelUpModal: React.FC<CaptainLevelUpModalProps> = ({
   isOpen,
   onClose,
-  entityType,
   currentLevel,
   maxLevel,
-  availableTokens,
-  entityName,
-  entityImage,
+  captainName,
+  captainImage,
   captainId,
-  onLevelUp,
 }) => {
-  const [tokensToUse, setTokensToUse] = useState(0);
-  const [customInput, setCustomInput] = useState('');
+  const [levelUpCount, setLevelUpCount] = useState(1);
+  const [customInput, setCustomInput] = useState('1');
   const [loading, setLoading] = useState(false);
   const [jobId, setJobId] = useState('');
 
-  const auth = useAuth();
   const { user } = useUser();
+  const auth = useAuth();
   const { notifications } = useNotifications();
+  const layerContext = useContext(LayerContext);
 
-  // Map entityType to UpgradeType
-  const getUpgradeType = (
-    entityType: 'ship' | 'crew' | 'item',
-  ): UpgradeType => {
-    switch (entityType) {
-      case 'ship':
-        return UpgradeType.SHIP;
-      case 'crew':
-        return UpgradeType.CREW;
-      case 'item':
-        return UpgradeType.ITEM;
-      default:
-        return UpgradeType.SHIP;
-    }
-  };
+  if (!layerContext) {
+    throw new Error('CaptainLevelUpModal must be used within a LayerProvider');
+  }
 
-  // Calculate maximum tokens that can be used
-  const maxTokensUsable = useMemo(() => {
-    const levelsUntilMax = maxLevel - currentLevel;
-    return Math.min(availableTokens, levelsUntilMax);
-  }, [availableTokens, currentLevel, maxLevel]);
+  const { pricesData } = layerContext;
+
+  // Calculate maximum levels that can be upgraded
+  const maxLevelsUpgradeable = useMemo(() => {
+    return maxLevel - currentLevel;
+  }, [currentLevel, maxLevel]);
+
+  // Calculate total cost using the existing helper function
+  const totalCost = useMemo(() => {
+    if (!pricesData?.usdc_booty_price) return 0;
+
+    // Use the same cost calculation as other entities, but for captains
+    return getCostForLevelUp(
+      NFTType.QM, // Use QM as default captain type for cost calculation
+      pricesData.usdc_booty_price,
+      currentLevel,
+      currentLevel + levelUpCount,
+    );
+  }, [levelUpCount, currentLevel, pricesData]);
 
   // Calculate new level after upgrade
   const newLevel = useMemo(() => {
-    return Math.min(currentLevel + tokensToUse, maxLevel);
-  }, [currentLevel, tokensToUse, maxLevel]);
+    return Math.min(currentLevel + levelUpCount, maxLevel);
+  }, [currentLevel, levelUpCount, maxLevel]);
+
+  // Check if user has enough BOOTY
+  const hasEnoughBooty = useMemo(() => {
+    if (!user?.arAmount) return false;
+    return user.arAmount >= totalCost;
+  }, [user?.arAmount, totalCost]);
 
   // Handle slider change
   const handleSliderChange = useCallback((value: number) => {
-    setTokensToUse(value);
+    setLevelUpCount(value);
     setCustomInput(value.toString());
   }, []);
 
@@ -122,47 +129,46 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
       setCustomInput(value);
 
       const numericValue = parseInt(value) || 0;
-      const clampedValue = Math.max(0, Math.min(numericValue, maxTokensUsable));
-      setTokensToUse(clampedValue);
+      const clampedValue = Math.max(
+        1,
+        Math.min(numericValue, maxLevelsUpgradeable),
+      );
+      setLevelUpCount(clampedValue);
     },
-    [maxTokensUsable],
+    [maxLevelsUpgradeable],
   );
 
-  // Handle level up action with backend integration
+  // Handle level up action
   const handleLevelUp = useCallback(async () => {
-    if (tokensToUse <= 0) return;
+    if (levelUpCount <= 0 || !hasEnoughBooty) return;
 
     if (!auth.isLoggedIn || !auth.jwtToken) {
-      toast.error('Please log in to level up');
+      toast.error('Please log in to level up your captain');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await levelUpEntities({
+      const response = await levelUpCaptain({
         captainId,
-        levelUpCount: tokensToUse,
-        type: getUpgradeType(entityType),
+        levelUpCount,
         jwtToken: auth.jwtToken,
       });
 
       setJobId(response.jobId);
-
-      // Call the optional callback
-      if (onLevelUp) {
-        onLevelUp(tokensToUse);
-      }
+      toast.success('Captain level up initiated!');
+      onClose();
     } catch (error: any) {
-      toast.error(error.message || `Error during ${entityType} level-up`);
+      toast.error(error.message || 'Error during captain level-up');
       setLoading(false);
     }
-  }, [tokensToUse, auth, entityType, captainId, onLevelUp, onClose]);
+  }, [levelUpCount, hasEnoughBooty, totalCost, auth, captainId, onClose]);
 
   // Monitor job status for notifications
   React.useEffect(() => {
     if (user?.wallet && jobId !== '') {
       const notification = notifications.find(
-        (n) => n.data.id === jobId && n.type === 'levelUpEntities',
+        (n) => n.data.id === jobId && n.type === 'captainLevelUp',
       );
 
       if (notification) {
@@ -170,14 +176,13 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
           toast.error(notification.data.message);
         } else {
           toast.success(
-            `Successfully Levelled Up ${entityName} to Level ${
+            `Successfully Levelled Up ${captainName} to Level ${
               Number(notification.data.levelUpCount) + currentLevel
             }`,
           );
-          onClose();
         }
 
-        // Refresh data - same as EnhancedUpgradeCard
+        // Refresh data
         mutate(`${config.worker_server_url}/users/me`);
         mutate(`${config.worker_server_url}/nfts`);
         mutate(`${config.worker_server_url}/items/fetch-items`);
@@ -199,53 +204,17 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [jobId, user?.wallet, notifications, entityName, currentLevel]);
+  }, [jobId, user?.wallet, notifications, captainName, currentLevel]);
 
   // Reset state when modal closes
   React.useEffect(() => {
     if (!isOpen) {
-      setTokensToUse(0);
-      setCustomInput('');
+      setLevelUpCount(1);
+      setCustomInput('1');
       setLoading(false);
       setJobId('');
     }
   }, [isOpen]);
-
-  // Get entity type styling
-  const getEntityTypeStyle = () => {
-    switch (entityType) {
-      case 'ship':
-        return {
-          color: 'text-blue-400',
-          bg: 'bg-blue-500/20',
-          border: 'border-blue-400/30',
-          button: 'bg-blue-600 hover:bg-blue-700',
-        };
-      case 'crew':
-        return {
-          color: 'text-green-400',
-          bg: 'bg-green-500/20',
-          border: 'border-green-400/30',
-          button: 'bg-green-600 hover:bg-green-700',
-        };
-      case 'item':
-        return {
-          color: 'text-purple-400',
-          bg: 'bg-purple-500/20',
-          border: 'border-purple-400/30',
-          button: 'bg-purple-600 hover:bg-purple-700',
-        };
-      default:
-        return {
-          color: 'text-gray-400',
-          bg: 'bg-gray-500/20',
-          border: 'border-gray-400/30',
-          button: 'bg-gray-600 hover:bg-gray-700',
-        };
-    }
-  };
-
-  const styles = getEntityTypeStyle();
 
   if (!isOpen) return null;
 
@@ -268,12 +237,12 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
           initial="hidden"
           animate="visible"
           exit="exit"
-          className={`relative w-full max-w-md rounded-lg border ${styles.border} ${styles.bg} bg-black/90 p-6 text-white shadow-2xl backdrop-blur-md`}
+          className="relative w-full max-w-md rounded-lg border border-yellow-400/30 bg-black/90 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 p-6 text-white shadow-2xl backdrop-blur-md"
           onClick={(e) => e.stopPropagation()}>
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
-            <h2 className={`text-xl font-bold uppercase ${styles.color}`}>
-              Level Up {entityType}
+            <h2 className="text-xl font-bold uppercase text-yellow-400">
+              Level Up Captain
             </h2>
             <button
               onClick={onClose}
@@ -282,61 +251,55 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
             </button>
           </div>
 
-          {/* Entity Info */}
+          {/* Captain Info */}
           <div className="mb-6 flex items-center gap-4">
             <div className="relative h-16 w-16 overflow-hidden rounded-lg">
               <Image
-                src={entityImage}
-                alt={entityName}
+                src={captainImage}
+                alt={captainName}
                 fill
                 className="object-cover"
                 unoptimized
               />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">{entityName}</h3>
+              <h3 className="text-left text-lg font-semibold">{captainName}</h3>
               <p className="text-sm text-white/70">
                 Level {currentLevel} → {newLevel}
               </p>
             </div>
           </div>
 
-          {/* Available Tokens */}
-          <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm text-white/70">Available Tokens:</span>
-            <span className={`text-lg font-bold ${styles.color}`}>
-              {availableTokens.toLocaleString()}
-            </span>
-          </div>
-
           {/* Level Up Controls */}
           <div className="mb-6 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Tokens to use:</span>
-              <span className="text-sm text-white/70">
-                {tokensToUse} token{tokensToUse !== 1 ? 's' : ''}
+              <span className="text-sm font-medium">Levels to upgrade:</span>
+              <span className="text-sm text-yellow-400">
+                {levelUpCount} level{levelUpCount !== 1 ? 's' : ''}
               </span>
             </div>
 
             {/* Slider */}
-            <div className="px-2">
-              <Slider
-                min={0}
-                max={maxTokensUsable}
-                value={tokensToUse}
-                onChange={handleSliderChange}
-                trackStyle={{ backgroundColor: styles.color.split('-')[1] }}
-                handleStyle={{ borderColor: styles.color.split('-')[1] }}
-                railStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-              />
-            </div>
+
+            <Slider
+              min={1}
+              max={maxLevelsUpgradeable}
+              value={levelUpCount}
+              onChange={handleSliderChange}
+              trackStyle={{ backgroundColor: '#facc15' }}
+              handleStyle={{
+                borderColor: '#facc15',
+                backgroundColor: '#facc15',
+              }}
+              railStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+            />
 
             {/* Manual Input */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setTokensToUse(Math.max(0, tokensToUse - 1))}
+                onClick={() => setLevelUpCount(Math.max(1, levelUpCount - 1))}
                 className="flex h-8 w-8 items-center justify-center rounded border border-white/20 text-white transition-colors hover:bg-white/10"
-                disabled={tokensToUse <= 0}>
+                disabled={levelUpCount <= 1}>
                 <Minus className="h-4 w-4" />
               </button>
 
@@ -344,49 +307,56 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
                 type="number"
                 value={customInput}
                 onChange={handleCustomInputChange}
-                min={0}
-                max={maxTokensUsable}
-                placeholder="0"
+                min={1}
+                max={maxLevelsUpgradeable}
                 className="flex-1 rounded border border-white/20 bg-black/30 px-3 py-1 text-center text-white"
               />
 
               <button
                 onClick={() =>
-                  setTokensToUse(Math.min(maxTokensUsable, tokensToUse + 1))
+                  setLevelUpCount(
+                    Math.min(maxLevelsUpgradeable, levelUpCount + 1),
+                  )
                 }
                 className="flex h-8 w-8 items-center justify-center rounded border border-white/20 text-white transition-colors hover:bg-white/10"
-                disabled={tokensToUse >= maxTokensUsable}>
+                disabled={levelUpCount >= maxLevelsUpgradeable}>
                 <Plus className="h-4 w-4" />
               </button>
             </div>
+          </div>
 
-            {/* MAX button */}
-            <button
-              onClick={() => {
-                setTokensToUse(maxTokensUsable);
-                setCustomInput(maxTokensUsable.toString());
-              }}
-              className="w-full rounded border border-white/20 bg-white/10 py-2 text-white transition-colors hover:bg-white/20"
-              disabled={tokensToUse >= maxTokensUsable}>
-              Use All Available Tokens
-            </button>
+          {/* Cost Display */}
+          <div className="mb-6 rounded-lg border border-white/20 bg-black/30 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Total Cost:</span>
+              <span className="text-lg font-bold text-yellow-400">
+                ${totalCost.toFixed(2)} BOOTY
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="text-white/70">Your Balance:</span>
+              <span
+                className={hasEnoughBooty ? 'text-green-400' : 'text-red-400'}>
+                ${(user?.arAmount || 0).toFixed(2)} BOOTY
+              </span>
+            </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 rounded-lg border border-white/20 bg-transparent px-4 py-2 text-white transition-colors hover:bg-white/10"
-              disabled={loading}>
+              disabled={loading}
+              className="flex-1 rounded-lg border border-white/20 bg-transparent px-4 py-2 text-white transition-colors hover:bg-white/10">
               Cancel
             </button>
 
             <button
               onClick={handleLevelUp}
-              disabled={tokensToUse <= 0 || loading}
+              disabled={!hasEnoughBooty || levelUpCount <= 0 || loading}
               className={`flex-1 rounded-lg px-4 py-2 font-semibold transition-colors ${
-                tokensToUse > 0 && !loading
-                  ? styles.button
+                hasEnoughBooty && levelUpCount > 0 && !loading
+                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                   : 'cursor-not-allowed bg-gray-600 text-gray-400'
               }`}>
               {loading ? 'Leveling Up...' : 'Level Up'}
@@ -398,4 +368,4 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
   );
 };
 
-export default LevelUpModal;
+export default CaptainLevelUpModal;

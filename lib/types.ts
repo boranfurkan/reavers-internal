@@ -272,9 +272,9 @@ export interface ExchangeItem {
   name: string;
   image: string;
   active: boolean;
-  costType: 'gemsAmount' | 'treasureAmount';
+  costType: 'gemsAmount' | 'treasureAmount' | 'arAmount';
   costAmount: number;
-  yieldType: 'arAmount' | 'goldAmount';
+  yieldType: 'arAmount' | 'goldAmount' | 'battleTokens';
   yieldAmount: number;
 }
 

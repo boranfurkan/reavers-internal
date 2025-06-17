@@ -1,15 +1,12 @@
 import { config } from '../../../config';
-import { UpgradeType } from '../../../types/Upgrade';
 
-export const levelUpEntities = async ({
+export const levelUpCaptain = async ({
   captainId,
   levelUpCount,
-  type,
   jwtToken,
 }: {
   captainId: string;
   levelUpCount: number;
-  type: UpgradeType;
   jwtToken: string;
 }) => {
   const endpoint = `${config.worker_server_url}/inventory/level-up-entities`;
@@ -23,7 +20,6 @@ export const levelUpEntities = async ({
     body: JSON.stringify({
       captainId,
       levelUpCount,
-      type,
     }),
   });
 

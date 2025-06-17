@@ -1,47 +1,90 @@
+// components/missions/ExchangeModal/ExchangeItemCard.tsx
 import React, { useState, useCallback, useContext, useEffect } from 'react';
 import Image from 'next/image';
-import styled from 'styled-components';
-import PlusIcon from '../../../assets/plus-icon';
-import MinusIcon from '../../../assets/minus-icon';
+import { motion } from 'framer-motion';
+import { Plus, Minus } from 'lucide-react';
+import { Slider, Spin } from 'antd';
+import { toast } from 'sonner';
+import { mutate } from 'swr';
+
 import { ExchangeItem, DynamicExchangeItem } from '../../../lib/types';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useUser } from '../../../contexts/UserContext';
+import { NotificationContext } from '../../../contexts/NotificationContext';
+import { config } from '../../../config';
+
+// Icons
 import GemIcon from '../../../assets/gem-icon';
 import TreasureIcon from '../../../assets/treasure-icon';
 import SkullIcon from '../../../assets/skull-icon';
 import GoldTokenIcon from '../../../assets/gold-token-icon';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useUser } from '../../../contexts/UserContext';
-import { NotificationContext } from '../../../contexts/NotificationContext';
-import { toast } from 'sonner';
-import { config } from '../../../config';
-import { mutate } from 'swr';
-import { Spin } from 'antd';
+import BattleTokenIcon from '../../../assets/battle-token-icon';
 
 type Item = ExchangeItem | DynamicExchangeItem;
 
 interface ExchangeItemCardProps {
   item: Item;
+  variant?: 'button' | 'slider'; // Choose between button or slider version
+  maxValue?: number; // Max value for slider version
 }
 
-const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({ item }) => {
-  const [amount, setAmount] = useState(1); // Only for non-dynamic items
+// Animation variants
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.1, 0.25, 1],
+    },
+  },
+  hover: {
+    y: -6,
+    scale: 1.02,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut',
+    },
+  },
+};
+
+const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({
+  item,
+  variant = 'button',
+  maxValue = 100,
+}) => {
+  const [amount, setAmount] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [jobId, setJobId] = useState('');
 
   const auth = useAuth();
   const user = useUser();
   const { notifications } = useContext(NotificationContext);
-  const [jobId, setJobId] = useState('');
 
   const isDynamicItem = (item: Item): item is DynamicExchangeItem =>
     'type' in item;
+
+  const isBattleTokenItem = item.yieldType === 'battleTokens';
 
   const handleAmountChange = useCallback(
     (change: number) => {
       if (isDynamicItem(item)) return;
       const newAmount = amount + change;
       if (newAmount < 1) return;
+      if (variant === 'slider' && newAmount > maxValue) return;
       setAmount(newAmount);
     },
-    [amount, item],
+    [amount, item, variant, maxValue],
+  );
+
+  const handleSliderChange = useCallback(
+    (value: number) => {
+      if (!isDynamicItem(item)) {
+        setAmount(value);
+      }
+    },
+    [item],
   );
 
   const formatNumber = (num: number | undefined | null) => {
@@ -136,7 +179,6 @@ const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({ item }) => {
         mutate(`${config.worker_server_url}/nfts`);
         setTimeout(() => {
           mutate(`${config.worker_server_url}/exchange/fetch-exchange-items`);
-
           setLoading(false);
           setJobId('');
         }, 1000);
@@ -153,269 +195,193 @@ const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({ item }) => {
     }
   }, [jobId, user.user?.wallet, notifications]);
 
+  // Get icon for cost/yield type
+  const getIcon = (type: string, size: number = 20) => {
+    const iconProps = { width: size, height: size, className: 'h-5 w-5' };
+
+    switch (type) {
+      case 'gemsAmount':
+        return <GemIcon {...iconProps} />;
+      case 'treasureAmount':
+        return <TreasureIcon {...iconProps} />;
+      case 'goldAmount':
+        return <GoldTokenIcon {...iconProps} />;
+      case 'arAmount':
+        return <SkullIcon {...iconProps} />;
+      case 'battleTokens':
+        return <BattleTokenIcon {...iconProps} />;
+      default:
+        return <SkullIcon {...iconProps} />;
+    }
+  };
+
+  const calculatedCostAmount = isDynamicItem(item)
+    ? item.costAmount
+    : item.costAmount * amount;
+
+  const calculatedYieldAmount = isDynamicItem(item)
+    ? item.yieldAmount
+    : item.yieldAmount * amount;
+
   return (
-    <Card>
-      <ImageContainer>
-        <Image
-          src={item.image}
-          alt={item.name}
-          width={300}
-          height={300}
-          className="rounded-lg object-cover"
-          unoptimized
-        />
-      </ImageContainer>
-      <Content>
-        <TitleSection>
-          <h3>{item.name}</h3>
-          {!item.active && <InactiveBadge>Inactive</InactiveBadge>}
-        </TitleSection>
-        <Details>
-          <Info>
-            <InfoLabel>Cost</InfoLabel>
-            <InfoValue>
-              <span>
-                {formatNumber(
-                  isDynamicItem(item)
-                    ? item.costAmount
-                    : item.costAmount * amount,
-                )}
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover="hover"
+      className="relative flex min-h-[520px] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-black/90 to-gray-900/90 shadow-2xl backdrop-blur-md transition-all duration-300">
+      {!isBattleTokenItem && (
+        <div className="absolute left-4 top-2 z-10 text-center text-sm font-semibold text-yellow-400/90">
+          (10% TAX)
+        </div>
+      )}
+
+      {/* Inactive badge */}
+      {!item.active && (
+        <div className="absolute right-4 top-2 z-10 rounded-md bg-red-600/90 px-2 py-1 text-xs font-semibold text-white">
+          Inactive
+        </div>
+      )}
+
+      {/* Image Container */}
+      <div className="flex h-[220px] w-full items-center justify-center border-b border-white/20 bg-black/30 p-4">
+        <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col justify-between gap-4 p-6">
+        {/* Title */}
+        <div className="text-center">
+          <h3 className="text-xl font-bold text-white transition-colors duration-300 hover:text-white/80">
+            {item.name}
+          </h3>
+        </div>
+
+        {/* Details */}
+        <div className="flex flex-col gap-3">
+          {/* Cost */}
+          <div className="flex items-center justify-between rounded-lg border border-white/20 bg-black/30 p-3">
+            <span className="font-semibold text-white/70">Cost</span>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white">
+                {formatNumber(calculatedCostAmount)}
               </span>
-              {item.costType === 'gemsAmount' ? (
-                <GemIcon width={20} height={20} className="h-5 w-5" />
-              ) : item.costType === 'treasureAmount' ? (
-                <TreasureIcon width={20} height={20} className="h-5 w-5" />
-              ) : item.costType === 'goldAmount' ? (
-                <GoldTokenIcon width={20} height={20} className="h-5 w-5" />
-              ) : (
-                <SkullIcon width={20} height={20} className="h-5 w-5" />
-              )}
-            </InfoValue>
-          </Info>
-          <Info>
-            <InfoLabel>Yield</InfoLabel>
-            <InfoValue>
-              <span>
-                {formatNumber(
-                  isDynamicItem(item)
-                    ? item.yieldAmount
-                    : item.yieldAmount * amount,
-                )}
+              {getIcon(item.costType)}
+            </div>
+          </div>
+
+          {/* Yield */}
+          <div className="flex items-center justify-between rounded-lg border border-white/20 bg-black/30 p-3">
+            <span className="font-semibold text-white/70">Yield</span>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white">
+                {formatNumber(calculatedYieldAmount)}
               </span>
-              {item.yieldType === 'arAmount' ? (
-                <SkullIcon width={20} height={20} className="h-5 w-5" />
-              ) : (
-                <GoldTokenIcon width={20} height={20} className="h-5 w-5" />
-              )}
-            </InfoValue>
-          </Info>
+              {getIcon(item.yieldType)}
+            </div>
+          </div>
+
+          {/* Amount Available (for dynamic items) */}
           {isDynamicItem(item) && (
-            <Info>
-              <InfoLabel>Amount Available</InfoLabel>
-              <InfoValue>{item.amountAvailable}</InfoValue>
-            </Info>
+            <div className="flex items-center justify-between rounded-lg border border-white/20 bg-black/30 p-3">
+              <span className="font-semibold text-white/70">Available</span>
+              <span className="font-bold text-white">
+                {formatNumber(item.amountAvailable)}
+              </span>
+            </div>
           )}
-        </Details>
-        <Actions>
-          {!isDynamicItem(item) && (
-            <AmountControl>
-              <ActionButton onClick={() => handleAmountChange(-1)}>
-                <MinusIcon className="h-4 w-4" fill="currentColor" />
-              </ActionButton>
-              <AmountDisplay>{amount}</AmountDisplay>
-              <ActionButton onClick={() => handleAmountChange(1)}>
-                <PlusIcon className="h-4 w-4" fill="currentColor" />
-              </ActionButton>
-            </AmountControl>
+        </div>
+
+        {/* Amount Controls (only for non-dynamic items) */}
+        {!isDynamicItem(item) && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-white/70">Amount:</span>
+              <span className="text-sm font-bold text-white">{amount}</span>
+            </div>
+
+            {variant === 'button' ? (
+              /* Button Version */
+              <div className="flex items-center overflow-hidden rounded-lg border border-white/20 bg-black/30">
+                <button
+                  onClick={() => handleAmountChange(-1)}
+                  disabled={amount <= 1 || loading}
+                  className="flex h-12 w-12 items-center justify-center text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
+                  <Minus className="h-4 w-4" />
+                </button>
+
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 1;
+                    const clampedValue = Math.max(1, value);
+                    setAmount(clampedValue);
+                  }}
+                  min={1}
+                  disabled={loading}
+                  className="flex-1 border border-b-0 border-t-0 border-white/20 bg-transparent py-3 text-center text-lg font-bold text-white outline-none disabled:opacity-50"
+                />
+
+                <button
+                  onClick={() => handleAmountChange(1)}
+                  disabled={loading}
+                  className="flex h-12 w-12 items-center justify-center text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50">
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              /* Slider Version */
+              <div className="space-y-3">
+                <div className="px-2">
+                  <Slider
+                    min={1}
+                    max={maxValue}
+                    value={amount}
+                    onChange={handleSliderChange}
+                    trackStyle={{ backgroundColor: '#ffffff' }}
+                    handleStyle={{
+                      borderColor: '#ffffff',
+                      backgroundColor: '#ffffff',
+                    }}
+                    railStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Purchase Button */}
+        <button
+          onClick={() => handlePurchase(item)}
+          disabled={!item.active || loading}
+          className={`w-full rounded-lg py-3 font-bold transition-all duration-300 ${
+            !item.active || loading
+              ? 'cursor-not-allowed bg-gray-600/50 text-gray-400'
+              : 'bg-white text-black hover:bg-white/90 hover:shadow-lg hover:shadow-white/25 active:scale-95'
+          }`}>
+          {loading ? (
+            <div className="flex items-center justify-center gap-2">
+              <Spin size="small" />
+              <span>Processing...</span>
+            </div>
+          ) : (
+            'Purchase'
           )}
-          <PurchaseButton
-            onClick={() => handlePurchase(item)}
-            disabled={!item.active || loading}>
-            {loading ? <Spin /> : 'Purchase'}
-          </PurchaseButton>
-        </Actions>
-      </Content>
-      <span className="absolute left-4 top-2 text-center text-[#ffd700]">
-        (%10 TAX)
-      </span>
-    </Card>
+        </button>
+      </div>
+    </motion.div>
   );
 };
 
 export default ExchangeItemCard;
-
-// Styled Components
-const Card = styled.div`
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 341px; /* Match MarketplaceItemCard */
-  min-height: 490px; /* Match MarketplaceItemCard */
-  background: #4c2f6b; /* Match MarketplaceItemCard */
-  border: 1px solid #d1b3ff; /* Match MarketplaceItemCard */
-  border-radius: 12px; /* Match MarketplaceItemCard */
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Match MarketplaceItemCard */
-  transition: transform 0.3s, box-shadow 0.3s;
-
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); /* Match MarketplaceItemCard */
-  }
-`;
-
-const ImageContainer = styled.div`
-  width: 100%;
-  height: 200px;
-  background: #3d2659; /* Match MarketplaceItemCard */
-  border-bottom: 1px solid #d1b3ff; /* Match MarketplaceItemCard */
-  display: flex;
-  padding: 16px;
-  justify-content: center;
-  align-items: center;
-
-  img {
-    border-radius: 12px; /* Match MarketplaceItemCard */
-  }
-`;
-
-const Content = styled.div`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 16px;
-  flex-grow: 1;
-  justify-content: space-between;
-  padding: 16px;
-  background: #422a5b;
-
-  @media (max-width: 768px) {
-    padding: 12px;
-  }
-`;
-
-const TitleSection = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #ffd700;
-    transition: color 0.4s;
-
-    ${Card}:hover & {
-      color: #e6bf4f;
-    }
-  }
-`;
-
-const InactiveBadge = styled.span`
-  position: absolute;
-  top: 10px;
-  right: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #ff4c4c;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-`;
-
-const Details = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  font-size: 1rem;
-`;
-
-const Info = styled.div`
-  display: flex;
-  justify-content: space-between;
-  background: rgba(100, 60, 160, 0.3);
-  padding: 8px 12px;
-  border-radius: 8px;
-  transition: background 0.4s;
-`;
-
-const InfoLabel = styled.span`
-  color: #d1b3ff;
-  font-weight: 600;
-`;
-
-const InfoValue = styled.span`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #ffd700;
-  font-weight: bold;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-`;
-
-const AmountControl = styled.div`
-  display: flex;
-  width: 100%;
-  align-items: center;
-  background: rgba(100, 60, 160, 0.4);
-  border: 1px solid #d1b3ff;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const ActionButton = styled.button`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 36px;
-  background: none;
-  color: #ffd700;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: background 0.3s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-`;
-
-const AmountDisplay = styled.span`
-  width: 50px;
-  text-align: center;
-  font-size: 1.2rem;
-  color: #ffd700;
-`;
-
-const PurchaseButton = styled.button`
-  width: 100%;
-  background: linear-gradient(45deg, #e0c07f, #ffd700);
-  color: black;
-  font-weight: bold;
-  padding: 12px 0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.3s, background 0.4s, box-shadow 0.3s;
-
-  &:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(45deg, #f7d37f, #ffe066);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;

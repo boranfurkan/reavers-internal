@@ -110,12 +110,14 @@ interface StatRowProps {
   label: string;
   value: string | number;
   highlight?: boolean;
+  icon?: React.ReactNode;
 }
 
 const StatRow: React.FC<StatRowProps> = ({
   label,
   value,
   highlight = false,
+  icon,
 }) => (
   <div className="flex items-center justify-between py-1">
     <span className="text-sm" style={{ color: theme.text.secondary }}>
@@ -124,7 +126,10 @@ const StatRow: React.FC<StatRowProps> = ({
     <span
       className="text-sm font-medium"
       style={{ color: highlight ? theme.text.gold : theme.text.primary }}>
-      {value}
+      <span className="flex items-center gap-1">
+        {value}
+        {icon && <span>{icon}</span>}
+      </span>
     </span>
   </div>
 );
@@ -279,16 +284,40 @@ const InventoryStatistics: React.FC = () => {
             label="Ship Tokens"
             value={user?.shipLevelToken || 0}
             highlight={true}
+            icon={
+              <img
+                src="/images/ship-level-up-token.webp"
+                alt="Ship Token"
+                width={24}
+                height={24}
+              />
+            }
           />
           <StatRow
             label="Crew Tokens"
             value={user?.crewLevelToken || 0}
             highlight={true}
+            icon={
+              <img
+                src="/images/crew-level-up-token.webp"
+                alt="Crew Token"
+                width={24}
+                height={24}
+              />
+            }
           />
           <StatRow
             label="Item Tokens"
             value={user?.itemLevelToken || 0}
             highlight={true}
+            icon={
+              <img
+                src="/images/item-level-up-token.webp"
+                alt="Item Token"
+                width={24}
+                height={24}
+              />
+            }
           />
           <div style={styles.divider} />
           <StatRow
@@ -299,7 +328,7 @@ const InventoryStatistics: React.FC = () => {
         </SummaryCard>
 
         {/* Fleet Overview Card */}
-        <SummaryCard title="Fleet Overview">
+        <SummaryCard title="Captain's Overview">
           <StatRow label="Total Captains" value={stats.totalCaptains} />
           <StatRow
             label="On Mission"
