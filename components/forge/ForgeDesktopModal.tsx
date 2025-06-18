@@ -1,3 +1,4 @@
+// components/forge/ForgeDesktopModal.tsx - Updated for multiple selection
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame } from 'lucide-react';
@@ -11,14 +12,18 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
   isOpen,
   onClose,
   activeTab,
-  selectedAsset,
+  selectedAssets, // Changed from selectedAsset
   currentAssets,
   currentRewards,
   isLoading,
   nftsLoading,
   onTabChange,
   onAssetSelect,
+  onAssetSelectMultiple,
   onBurn,
+  canSelectMultiple,
+  onSelectAll,
+  onClearSelection,
 }) => {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -38,6 +43,12 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
             <h2 className="font-Header text-lg font-bold uppercase text-white sm:text-xl">
               The Forge
             </h2>
+            {/* Selection counter */}
+            {selectedAssets.length > 0 && (
+              <div className="rounded-md bg-reavers-fill/20 px-2 py-1 text-sm font-medium text-reavers-fill">
+                {selectedAssets.length} selected
+              </div>
+            )}
           </div>
           <ModalCloseButton
             handleClose={onClose}
@@ -62,34 +73,28 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
             <div className="flex-1 overflow-y-auto bg-reavers-bg p-3 sm:p-4">
               <ForgeAssetGrid
                 assets={currentAssets}
-                selectedAsset={selectedAsset}
+                selectedAssets={selectedAssets} // Changed from selectedAsset
                 onAssetSelect={onAssetSelect}
                 isLoading={nftsLoading}
                 activeTab={activeTab}
-                gridCols="grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
+                isMobile={false}
+                gridCols="grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
+                canSelectMultiple={canSelectMultiple}
+                onSelectAll={onSelectAll}
+                onClearSelection={onClearSelection}
               />
             </div>
           </div>
 
-          {/* Vertical Divider - Hidden on mobile */}
-          <div className="hidden w-px bg-reavers-border lg:block"></div>
-
           {/* Right Panel - Burn Preview */}
-          <div className="flex w-full flex-col border-t border-reavers-border lg:w-1/2 lg:border-t-0">
-            {/* Right Panel Header */}
-            <div className="flex h-[50px] flex-shrink-0 items-center border-b border-reavers-border bg-reavers-bg-secondary px-4 py-3 sm:h-[60px]">
-              <h3 className="font-Header text-base font-bold uppercase text-white sm:text-lg">
-                Burn Rewards
-              </h3>
-            </div>
-
-            {/* Right Panel Content */}
-            <div className="flex-1 overflow-y-auto bg-reavers-bg p-3 sm:p-4">
+          <div className="hidden w-full border-l border-reavers-border bg-reavers-bg-secondary lg:block lg:w-1/2">
+            <div className="flex h-full flex-col p-4 sm:p-6">
               <ForgeBurnPreview
-                selectedAsset={selectedAsset}
+                selectedAssets={selectedAssets} // Changed from selectedAsset
                 currentRewards={currentRewards}
                 isLoading={isLoading}
                 onBurn={onBurn}
+                isMobile={false}
               />
             </div>
           </div>

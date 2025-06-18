@@ -1,3 +1,4 @@
+// hooks/inventory/useInventoryFilters.ts - Updated with additional sorting options
 import { useMemo } from 'react';
 import { CharacterNFT, CrewNFT, ShipNFT } from '../../types/NFT';
 import { GenesisShip, GenesisShipRarity } from '../../types/Genesis';
@@ -23,6 +24,7 @@ export type GenesisRarityFilter =
   | 'BRONZE';
 export type RarityFilter = StandardRarityFilter | GenesisRarityFilter;
 
+// Updated sort options to include entity-specific level sorting
 export type SortOption =
   | 'level-desc'
   | 'level-asc'
@@ -31,7 +33,13 @@ export type SortOption =
   | 'name-asc'
   | 'name-desc'
   | 'strength-desc'
-  | 'strength-asc';
+  | 'strength-asc'
+  | 'ship-level-desc'
+  | 'ship-level-asc'
+  | 'crew-level-desc'
+  | 'crew-level-asc'
+  | 'item-level-desc'
+  | 'item-level-asc';
 
 export type EquippedFilter = 'all' | 'equipped' | 'not-equipped';
 export type MissionFilter = 'all' | 'on-mission' | 'not-on-mission';
@@ -149,6 +157,28 @@ export function useInventoryFilters<T extends EntityType>(
         return 'level' in item ? item.level || 1 : 1;
       };
 
+      // Helper to get specific entity levels for Captains
+      const getShipLevel = (item: any): number => {
+        if (entityType === 'Captains' && 'shipLevel' in item) {
+          return item.shipLevel || 0;
+        }
+        return 0;
+      };
+
+      const getCrewLevel = (item: any): number => {
+        if (entityType === 'Captains' && 'crewLevel' in item) {
+          return item.crewLevel || 0;
+        }
+        return 0;
+      };
+
+      const getItemLevel = (item: any): number => {
+        if (entityType === 'Captains' && 'itemLevel' in item) {
+          return item.itemLevel || 0;
+        }
+        return 0;
+      };
+
       // Helper to get item strength (for captains)
       const getStrength = (item: any): number => {
         if (entityType === 'Captains' && 'strength' in item) {
@@ -222,6 +252,19 @@ export function useInventoryFilters<T extends EntityType>(
           return getName(a).localeCompare(getName(b));
         case 'name-desc':
           return getName(b).localeCompare(getName(a));
+        // New sorting options for entity-specific levels
+        case 'ship-level-desc':
+          return getShipLevel(b) - getShipLevel(a);
+        case 'ship-level-asc':
+          return getShipLevel(a) - getShipLevel(b);
+        case 'crew-level-desc':
+          return getCrewLevel(b) - getCrewLevel(a);
+        case 'crew-level-asc':
+          return getCrewLevel(a) - getCrewLevel(b);
+        case 'item-level-desc':
+          return getItemLevel(b) - getItemLevel(a);
+        case 'item-level-asc':
+          return getItemLevel(a) - getItemLevel(b);
         default:
           return getLevel(b) - getLevel(a); // Default to level-desc
       }

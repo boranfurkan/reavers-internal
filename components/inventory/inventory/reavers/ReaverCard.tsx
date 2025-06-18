@@ -1,7 +1,7 @@
 import React, { memo, useContext, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { LayerContext } from '../../../../contexts/LayerContext';
 import { CharacterNFT } from '../../../../types/NFT';
@@ -22,8 +22,6 @@ import CrewIcon from '../../../../assets/crew-icon';
 import ShipIcon from '../../../../assets/ship-icon';
 import LevelUpModal from '../../LevelUpModal';
 import CaptainLevelUpModal from '../../CaptainLevelUpModal';
-import LegendaryShipTokenIcon from '../../../../assets/legendary-ship-token-icon';
-import { useMythicShipUpgrade } from '../../../../hooks/api/inventory/useMythicShipUpgrade';
 
 // Animation variants
 const cardVariants = {
@@ -68,13 +66,13 @@ type LevelDisplayProps = {
   level: number;
   label: string;
   animationDelay?: number;
-  onLevelUp: () => void;
+  onLevelUp?: () => void;
   entityType: 'ship' | 'crew' | 'item';
   hasTokens: boolean;
   isMaxLevel: boolean;
 };
 
-const LevelDisplay = ({
+const LevelDisplay: React.FC<LevelDisplayProps> = ({
   icon,
   level,
   label,
@@ -83,9 +81,7 @@ const LevelDisplay = ({
   entityType,
   hasTokens,
   isMaxLevel,
-}: LevelDisplayProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-
+}) => {
   const getButtonColor = () => {
     switch (entityType) {
       case 'ship':
@@ -96,35 +92,40 @@ const LevelDisplay = ({
         return 'bg-purple-600 hover:bg-purple-700';
     }
   };
-
   return (
     <motion.div
       variants={itemVariants}
-      transition={{ delay: animationDelay }}
-      className="relative flex flex-col items-center justify-center rounded-md border border-white/20 bg-black/30 p-2 sm:p-3"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}>
-      <div className="mb-1 flex items-center justify-center text-white/70">
+      className="flex items-center justify-between rounded-md border border-white/20 bg-black/30 p-2 sm:p-3"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: animationDelay, duration: 0.3 }}>
+      <div className="flex items-center gap-2">
         {icon}
+        <span className="text-[10px] uppercase text-white/70 sm:text-[12px]">
+          {label}
+        </span>
       </div>
-      <span className="text-[8px] uppercase text-white/70 sm:text-[10px]">
-        {label}
-      </span>
-      <span className="text-sm font-bold text-white sm:text-base">{level}</span>
 
-      {hasTokens && !isMaxLevel && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onLevelUp();
-          }}
-          className={`absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 transition-all duration-200 ${getButtonColor()} ${
-            isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-90'
-          }`}
-          title={`Level up ${label}`}>
-          <Plus className="h-3 w-3 text-white" />
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-semibold text-white sm:text-base">
+          {level}
+        </span>
+
+        {/* Updated level up button logic - show unless at absolute max level (250) */}
+        {onLevelUp && hasTokens && !isMaxLevel && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onLevelUp();
+            }}
+            className={`rounded-full ${getButtonColor()} p-1 transition-all duration-200 hover:scale-110 ${
+              hasTokens ? 'scale-110 opacity-100' : 'scale-100 opacity-90'
+            }`}
+            title={`Level up ${label}`}>
+            <Plus className="h-3 w-3 text-white" />
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 };
@@ -147,10 +148,6 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   });
 
   const [captainLevelUpModal, setCaptainLevelUpModal] = useState(false);
-
-  // Use the mythic ship upgrade hook
-  const { upgradeMythicShip, loading: mythicUpgradeLoading } =
-    useMythicShipUpgrade();
 
   if (!layerContext) {
     throw new Error('ReaverCard must be used within a LayerProvider');
@@ -226,9 +223,20 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     }
   };
 
-  // Check if user has enough legendary ship tokens for mythic upgrade
-  const canUpgradeToMythic = () => {
-    return (user?.legendaryShipToken || 0) >= 2;
+  // Updated logic: Check if at absolute max level (250) for ships
+  const isAtAbsoluteMaxLevel = (
+    entityType: 'ship' | 'crew' | 'item',
+  ): boolean => {
+    switch (entityType) {
+      case 'ship':
+        return (character.shipLevel || 0) >= 250; // Max possible level for any ship
+      case 'crew':
+        return (character.crewLevel || 0) >= NFTMaxLevels.CREW;
+      case 'item':
+        return (character.itemLevel || 0) >= NFTMaxLevels.ITEM;
+      default:
+        return false;
+    }
   };
 
   // Event handlers
@@ -253,18 +261,6 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
 
   const handleCaptainLevelUpClose = () => {
     setCaptainLevelUpModal(false);
-  };
-
-  const handleMythicShipUpgrade = async () => {
-    if (!character.uid && !character.id) {
-      console.error('Character ID is missing');
-      return;
-    }
-
-    const captainId = character.uid || character.id || '';
-    const captainName = character.metadata?.name || 'Captain';
-
-    await upgradeMythicShip(captainId, captainName);
   };
 
   // Modal data
@@ -332,173 +328,110 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
             ],
           }}
           transition={{
-            duration: 8,
+            duration: 4,
             repeat: Infinity,
-            ease: 'linear',
+            ease: 'easeInOut',
           }}
         />
 
         {/* Content */}
         <div className="relative z-10">
-          {/* Header */}
+          {/* Header with character info and level up button */}
           <motion.div
-            variants={fadeInVariants}
+            variants={itemVariants}
             className="mb-3 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-white sm:text-base">
-                {getCharacterName()}
-              </h3>
-              <p className="text-[10px] uppercase text-white/70 sm:text-xs">
-                {character.type || 'Captain'}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <div className="text-right">
-                <span className="text-lg font-bold text-white sm:text-xl">
-                  {character.level || 1}
-                </span>
-                <p className="text-[8px] uppercase text-white/70 sm:text-[10px]">
-                  Level
-                </p>
-              </div>
-              <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-black/30 p-0.5 sm:h-7 sm:w-7">
-                <div
-                  className="h-full w-full rounded-full"
-                  style={{
-                    background: `conic-gradient(white ${getLevelPercentage()}%, transparent 0%)`,
-                  }}
-                />
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Main content grid */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-12 sm:gap-4">
-            {/* Character image */}
-            <motion.div
-              variants={itemVariants}
-              className="col-span-1 sm:col-span-4">
-              <div className="relative aspect-[3/4] overflow-visible rounded-md">
+            <div className="flex items-center gap-3">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white/30 sm:h-14 sm:w-14">
                 <Image
                   src={character.metadata?.image || '/images/reavers.webp'}
                   alt={character.metadata?.name || 'Captain'}
                   fill
-                  className="rounded-lg object-cover"
+                  className="object-cover"
                   unoptimized
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/80 px-1 py-0.5 text-center">
-                  <span className="text-[8px] font-medium uppercase text-white sm:text-[10px]">
-                    {character.type || 'Captain'}
-                  </span>
+              </div>
+              <div className="text-left">
+                <h3 className="font-Header text-sm font-bold text-white sm:text-base">
+                  {getCharacterName()}
+                </h3>
+                <div className="font-Body text-xs text-white/70 sm:text-sm">
+                  Level {character.level || 1}
                 </div>
-
-                {/* Captain Level Up Button */}
-                {(user?.arAmount || 0) > 0 &&
-                  (character.level || 1) < getCaptainMaxLevel() && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCaptainLevelUpClick();
-                      }}
-                      className="absolute -right-1 -top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-yellow-600 transition-all duration-200 hover:scale-110 hover:bg-yellow-700"
-                      title="Level up Captain">
-                      <Plus className="h-3 w-3 text-white" />
-                    </button>
-                  )}
-              </div>
-            </motion.div>
-
-            {/* Level displays */}
-            <div className="col-span-1 flex flex-col justify-between sm:col-span-8">
-              {/* Ship and Crew levels */}
-              <div className="mb-2 grid grid-cols-2 gap-2">
-                <LevelDisplay
-                  icon={<ShipIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  level={character.shipLevel || 0}
-                  label="Ship"
-                  animationDelay={0.1}
-                  onLevelUp={() => handleLevelUpClick('ship')}
-                  entityType="ship"
-                  hasTokens={getTokenCount('ship') > 0}
-                  isMaxLevel={
-                    (character.shipRarity === ShipRarity.Legendary &&
-                      (character.shipLevel || 0) >= NFTMaxLevels.MYTHIC_SHIP) ||
-                    (character.shipRarity !== ShipRarity.Legendary &&
-                      (character.shipLevel || 0) >= NFTMaxLevels.COMMON_SHIP)
-                  }
-                />
-                <LevelDisplay
-                  icon={<CrewIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  level={character.crewLevel || 0}
-                  label="Crew"
-                  animationDelay={0.2}
-                  onLevelUp={() => handleLevelUpClick('crew')}
-                  entityType="crew"
-                  hasTokens={getTokenCount('crew') > 0}
-                  isMaxLevel={(character.crewLevel || 0) >= NFTMaxLevels.CREW}
-                />
-              </div>
-
-              {/* Item level */}
-              <div className="grid grid-cols-1 gap-2">
-                <LevelDisplay
-                  icon={<ItemsIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  level={character.itemLevel || 0}
-                  label="Items"
-                  animationDelay={0.3}
-                  onLevelUp={() => handleLevelUpClick('item')}
-                  entityType="item"
-                  hasTokens={getTokenCount('item') > 0}
-                  isMaxLevel={(character.itemLevel || 0) >= NFTMaxLevels.ITEM}
-                />
               </div>
             </div>
-          </div>
 
-          <motion.div variants={itemVariants} className="mt-3">
-            {/* Ship Rarity Display */}
-            <div className="flex items-center justify-between rounded-md border border-white/20 bg-black/30 p-2 sm:p-3">
-              <span className="text-[10px] uppercase text-white/70 sm:text-[12px]">
-                Ship Rarity
+            {/* Captain level up button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCaptainLevelUpClick();
+              }}
+              className="rounded-full bg-yellow-600 p-2 transition-all duration-200 hover:scale-110 hover:bg-yellow-500">
+              <Plus className="h-4 w-4 text-white" />
+            </button>
+          </motion.div>
+
+          {/* Level Progress Bar */}
+          <motion.div variants={itemVariants} className="mb-4">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="font-Body text-xs text-white/70">
+                Level Progress
               </span>
-              {character.shipRarity === ShipRarity.Legendary ? (
-                <span className="text-sm font-semibold text-yellow-700 sm:text-base">
-                  Mythic
-                </span>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMythicShipUpgrade();
-                  }}
-                  disabled={!canUpgradeToMythic() || mythicUpgradeLoading}
-                  className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold transition-all duration-200 ${
-                    canUpgradeToMythic() && !mythicUpgradeLoading
-                      ? 'border-yellow-700 bg-yellow-700/60 text-white hover:bg-yellow-700'
-                      : 'cursor-not-allowed border-gray-600 bg-gray-600/60 text-gray-400'
-                  }`}
-                  title={
-                    !canUpgradeToMythic()
-                      ? 'Need 2 Legendary Ship Tokens'
-                      : 'Upgrade to Mythic Ship'
-                  }>
-                  <div className="flex items-center gap-1">
-                    {mythicUpgradeLoading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <>
-                        <span>2X</span>
-                        <LegendaryShipTokenIcon className="h-3 w-3" />
-                      </>
-                    )}
-                    <span>
-                      {mythicUpgradeLoading
-                        ? 'Upgrading...'
-                        : 'for Mythic Ship'}
-                    </span>
-                  </div>
-                </button>
-              )}
+              <span className="font-Body text-xs text-white">
+                {getLevelPercentage().toFixed(1)}%
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/20">
+              <motion.div
+                className="h-full bg-gradient-to-r from-yellow-500 to-orange-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${getLevelPercentage()}%` }}
+                transition={{ duration: 1, delay: 0.5 }}
+              />
+            </div>
+          </motion.div>
+
+          {/* Entity Levels */}
+          <motion.div
+            variants={itemVariants}
+            className="space-y-2 sm:space-y-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {/* Ship level - Updated to show button unless at level 250 */}
+              <LevelDisplay
+                icon={<ShipIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                level={character.shipLevel || 0}
+                label="Ship"
+                animationDelay={0.1}
+                onLevelUp={() => handleLevelUpClick('ship')}
+                entityType="ship"
+                hasTokens={getTokenCount('ship') > 0}
+                isMaxLevel={isAtAbsoluteMaxLevel('ship')} // Changed logic
+              />
+
+              <LevelDisplay
+                icon={<CrewIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                level={character.crewLevel || 0}
+                label="Crew"
+                animationDelay={0.2}
+                onLevelUp={() => handleLevelUpClick('crew')}
+                entityType="crew"
+                hasTokens={getTokenCount('crew') > 0}
+                isMaxLevel={isAtAbsoluteMaxLevel('crew')}
+              />
+            </div>
+
+            {/* Item level */}
+            <div className="grid grid-cols-1 gap-2">
+              <LevelDisplay
+                icon={<ItemsIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                level={character.itemLevel || 0}
+                label="Items"
+                animationDelay={0.3}
+                onLevelUp={() => handleLevelUpClick('item')}
+                entityType="item"
+                hasTokens={getTokenCount('item') > 0}
+                isMaxLevel={isAtAbsoluteMaxLevel('item')}
+              />
             </div>
           </motion.div>
 
@@ -539,7 +472,7 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
         )}
       </motion.div>
 
-      {/* Level Up Modal */}
+      {/* Level Up Modal - Will now include ship rarity display when entityType is 'ship' */}
       {levelUpModal.isOpen && levelUpModal.entityType && modalData && (
         <LevelUpModal
           isOpen={levelUpModal.isOpen}
@@ -552,6 +485,7 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
           entityImage={modalData.entityImage}
           captainId={character.uid || character.id || ''}
           onLevelUp={handleLevelUpConfirm}
+          character={character}
         />
       )}
 

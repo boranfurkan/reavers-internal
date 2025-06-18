@@ -1,3 +1,4 @@
+// components/forge/ForgeModal.tsx - Updated for multiple selection
 import React, { useContext, useState, useCallback } from 'react';
 import { LayerContext } from '../../contexts/LayerContext';
 import { useNfts } from '../../contexts/NftContext';
@@ -21,11 +22,11 @@ const ForgeModal: React.FC = React.memo(() => {
 
   const { isForgeModalOpen, setForgeModalOpen, isMobile } = layerContext;
 
-  // State management
+  // State management - Changed to support multiple assets
   const [activeTab, setActiveTab] = useState<ForgeTabValue>(
     ForgeTabValue.CAPTAIN,
   );
-  const [selectedAsset, setSelectedAsset] = useState<ForgeAsset | null>(null);
+  const [selectedAssets, setSelectedAssets] = useState<ForgeAsset[]>([]); // Changed from selectedAsset
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,17 +35,22 @@ const ForgeModal: React.FC = React.memo(() => {
     currentAssets,
     currentRewards,
     handleAssetSelect,
+    handleAssetSelectMultiple,
     handleTabChange,
     handleBurn,
     handleConfirmBurn,
     calculateRewards,
+    canSelectMultiple,
+    handleSelectAll,
+    handleClearSelection,
+    loading: forgeLoading,
   } = useForgeLogic({
     nftContext,
     auth,
     activeTab,
-    selectedAsset,
+    selectedAssets, // Changed from selectedAsset
     setActiveTab,
-    setSelectedAsset,
+    setSelectedAssets, // Changed from setSelectedAsset
     setIsConfirmModalOpen,
     setIsLoading,
   });
@@ -52,7 +58,7 @@ const ForgeModal: React.FC = React.memo(() => {
   // Close modal handler
   const handleClose = useCallback(() => {
     setForgeModalOpen(false);
-    setSelectedAsset(null);
+    setSelectedAssets([]); // Clear all selections
     setIsConfirmModalOpen(false);
   }, [setForgeModalOpen]);
 
@@ -66,14 +72,18 @@ const ForgeModal: React.FC = React.memo(() => {
           isOpen={isForgeModalOpen}
           onClose={handleClose}
           activeTab={activeTab}
-          selectedAsset={selectedAsset}
+          selectedAssets={selectedAssets} // Changed from selectedAsset
           currentAssets={currentAssets}
           currentRewards={currentRewards}
-          isLoading={isLoading}
+          isLoading={isLoading || forgeLoading}
           nftsLoading={nftContext.loading}
           onTabChange={handleTabChange}
           onAssetSelect={handleAssetSelect}
+          onAssetSelectMultiple={handleAssetSelectMultiple}
           onBurn={handleBurn}
+          canSelectMultiple={canSelectMultiple}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
         />
       )}
 
@@ -83,22 +93,26 @@ const ForgeModal: React.FC = React.memo(() => {
           isOpen={isForgeModalOpen}
           onClose={handleClose}
           activeTab={activeTab}
-          selectedAsset={selectedAsset}
+          selectedAssets={selectedAssets} // Changed from selectedAsset
           currentAssets={currentAssets}
           currentRewards={currentRewards}
-          isLoading={isLoading}
+          isLoading={isLoading || forgeLoading}
           nftsLoading={nftContext.loading}
           onTabChange={handleTabChange}
           onAssetSelect={handleAssetSelect}
+          onAssetSelectMultiple={handleAssetSelectMultiple}
           onBurn={handleBurn}
+          canSelectMultiple={canSelectMultiple}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
         />
       )}
 
       {/* Confirmation Modal */}
       <ForgeConfirmModal
         isOpen={isConfirmModalOpen}
-        selectedAsset={selectedAsset}
-        isLoading={isLoading}
+        selectedAssets={selectedAssets} // Changed from selectedAsset to selectedAssets
+        isLoading={isLoading || forgeLoading}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmBurn}
       />

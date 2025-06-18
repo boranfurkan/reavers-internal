@@ -1,18 +1,25 @@
+// hooks/forge/useForgeLogic.ts - Updated for multiple selection
 import { useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import { ForgeAsset, ForgeReward, ForgeTabValue } from '../../types/forge';
+import {
+  ForgeAsset,
+  ForgeReward,
+  ForgeTabValue,
+  SwapEntityRequest,
+} from '../../types/forge';
 import { CharacterNFT, CrewNFT, ShipNFT } from '../../types/NFT';
 import { NFTType } from '../../types/BaseEntity';
 import { getLevelRarity } from '../../utils/helpers';
 import { ItemData } from '../../lib/types';
+import { useSwapEntities } from '../../lib/api/inventory/useSwapEntities';
 
 interface UseForgeLogicProps {
   nftContext: any;
   auth: any;
   activeTab: ForgeTabValue;
-  selectedAsset: ForgeAsset | null;
+  selectedAssets: ForgeAsset[]; // Changed from selectedAsset to selectedAssets
   setActiveTab: (tab: ForgeTabValue) => void;
-  setSelectedAsset: (asset: ForgeAsset | null) => void;
+  setSelectedAssets: (assets: ForgeAsset[]) => void; // Changed setter
   setIsConfirmModalOpen: (open: boolean) => void;
   setIsLoading: (loading: boolean) => void;
 }
@@ -21,9 +28,9 @@ export const useForgeLogic = ({
   nftContext,
   auth,
   activeTab,
-  selectedAsset,
+  selectedAssets,
   setActiveTab,
-  setSelectedAsset,
+  setSelectedAssets,
   setIsConfirmModalOpen,
   setIsLoading,
 }: UseForgeLogicProps) => {
@@ -35,46 +42,45 @@ export const useForgeLogic = ({
     itemsInGame,
   } = nftContext;
 
-  // Calculate rewards based on selected asset
-  const calculateRewards = useCallback((asset: ForgeAsset): ForgeReward => {
-    if (!asset)
+  const { swapEntitiesWithTokens, loading: swapLoading } = useSwapEntities();
+
+  // Calculate rewards based on selected assets (multiple)
+  const calculateRewards = useCallback((assets: ForgeAsset[]): ForgeReward => {
+    if (!assets || assets.length === 0)
       return { shipTokens: 0, crewTokens: 0, itemTokens: 0, goldTokens: 0 };
 
-    const baseReward = asset.level;
-    const goldBonus = asset.minted ? 150 : 0;
+    return assets.reduce(
+      (total, asset) => {
+        const baseReward = asset.level;
+        const goldBonus = asset.minted ? 150 : 0;
 
-    switch (asset.type) {
-      case ForgeTabValue.CAPTAIN:
-        return {
-          shipTokens: 0,
-          crewTokens: 0,
-          itemTokens: 0,
-          goldTokens: 0,
-        };
-      case ForgeTabValue.SHIP:
-        return {
-          shipTokens: baseReward,
-          crewTokens: 0,
-          itemTokens: 0,
-          goldTokens: goldBonus,
-        };
-      case ForgeTabValue.CREW:
-        return {
-          shipTokens: 0,
-          crewTokens: baseReward,
-          itemTokens: 0,
-          goldTokens: goldBonus,
-        };
-      case ForgeTabValue.ITEM:
-        return {
-          shipTokens: 0,
-          crewTokens: 0,
-          itemTokens: baseReward,
-          goldTokens: goldBonus,
-        };
-      default:
-        return { shipTokens: 0, crewTokens: 0, itemTokens: 0, goldTokens: 0 };
-    }
+        switch (asset.type) {
+          case ForgeTabValue.CAPTAIN:
+            return total; // No tokens for captains
+          case ForgeTabValue.SHIP:
+            return {
+              ...total,
+              shipTokens: total.shipTokens + baseReward,
+              goldTokens: total.goldTokens + goldBonus,
+            };
+          case ForgeTabValue.CREW:
+            return {
+              ...total,
+              crewTokens: total.crewTokens + baseReward,
+              goldTokens: total.goldTokens + goldBonus,
+            };
+          case ForgeTabValue.ITEM:
+            return {
+              ...total,
+              itemTokens: total.itemTokens + baseReward,
+              goldTokens: total.goldTokens + goldBonus,
+            };
+          default:
+            return total;
+        }
+      },
+      { shipTokens: 0, crewTokens: 0, itemTokens: 0, goldTokens: 0 },
+    );
   }, []);
 
   // Memoize NFT arrays
@@ -166,108 +172,187 @@ export const useForgeLogic = ({
     [captainsArray, shipsArray, crewsArray, itemsArray],
   );
 
-  // Get current assets for active tab
+  // Get current assets for active tab with sorting
   const currentAssets = useMemo(() => {
     try {
       const assets = getForgeAssets(activeTab);
-      return Array.isArray(assets) ? assets : [];
+
+      // Sort assets: non-minted first, then by level (highest first), then by name
+      return Array.isArray(assets)
+        ? assets.sort((a, b) => {
+            // First, sort by minted status (non-minted first)
+            if (a.minted !== b.minted) {
+              return a.minted ? 1 : -1;
+            }
+            // Then by level (highest first)
+            if (a.level !== b.level) {
+              return b.level - a.level;
+            }
+            // Finally by name
+            return a.name.localeCompare(b.name);
+          })
+        : [];
     } catch (error) {
       console.error('Error getting forge assets:', error);
       return [];
     }
   }, [activeTab, getForgeAssets]);
 
-  // Handle asset selection
+  // Check if multiple selection is allowed (only non-minted or only minted, not mixed)
+  const canSelectMultiple = useMemo(() => {
+    if (selectedAssets.length === 0) return true;
+
+    // Check if all selected assets have the same minted status
+    const firstAssetMinted = selectedAssets[0].minted;
+    return selectedAssets.every((asset) => asset.minted === firstAssetMinted);
+  }, [selectedAssets]);
+
+  // Handle individual asset selection with multiple selection logic
   const handleAssetSelect = useCallback(
     (asset: ForgeAsset) => {
-      const newSelectedAsset = selectedAsset?.id === asset.id ? null : asset;
-      setSelectedAsset(newSelectedAsset);
+      const isAlreadySelected = selectedAssets.some(
+        (a: ForgeAsset) => a.id === asset.id,
+      );
+
+      if (isAlreadySelected) {
+        // Remove from selection
+        const newSelection = selectedAssets.filter(
+          (a: ForgeAsset) => a.id !== asset.id,
+        );
+        setSelectedAssets(newSelection);
+      } else {
+        // Check if we can add this asset
+        if (selectedAssets.length === 0) {
+          // First selection
+          setSelectedAssets([asset]);
+          return;
+        }
+
+        // Check if minted status matches existing selection
+        const firstAssetMinted = selectedAssets[0].minted;
+        if (asset.minted !== firstAssetMinted) {
+          toast.error(
+            'Cannot mix minted and non-minted entities in the same selection',
+          );
+          return;
+        }
+
+        // Add to selection
+        setSelectedAssets([...selectedAssets, asset]);
+      }
     },
-    [selectedAsset, setSelectedAsset],
+    [setSelectedAssets, selectedAssets],
   );
+
+  // Handle multiple asset selection (for select all functionality)
+  const handleAssetSelectMultiple = useCallback(
+    (assets: ForgeAsset[]) => {
+      setSelectedAssets(assets);
+    },
+    [setSelectedAssets],
+  );
+
+  // Select all non-minted assets
+  const handleSelectAll = useCallback(() => {
+    const nonMintedAssets = currentAssets.filter((asset) => !asset.minted);
+    setSelectedAssets(nonMintedAssets);
+    toast.success(
+      `Selected ${
+        nonMintedAssets.length
+      } non-minted ${activeTab.toLowerCase()}s`,
+    );
+  }, [currentAssets, setSelectedAssets, activeTab]);
+
+  // Clear all selections
+  const handleClearSelection = useCallback(() => {
+    setSelectedAssets([]);
+  }, [setSelectedAssets]);
 
   // Handle tab change
   const handleTabChange = useCallback(
     (newTab: ForgeTabValue) => {
       setActiveTab(newTab);
-      setSelectedAsset(null);
+      setSelectedAssets([]);
     },
-    [setActiveTab, setSelectedAsset],
+    [setActiveTab, setSelectedAssets],
   );
 
   // Handle burn action
   const handleBurn = useCallback(() => {
-    if (!selectedAsset) return;
+    if (!selectedAssets || selectedAssets.length === 0) return;
     setIsConfirmModalOpen(true);
-  }, [selectedAsset, setIsConfirmModalOpen]);
+  }, [selectedAssets, setIsConfirmModalOpen]);
 
   // Handle confirm burn
   const handleConfirmBurn = useCallback(async () => {
-    if (!selectedAsset || !auth.jwtToken) return;
+    if (!selectedAssets || selectedAssets.length === 0 || !auth.jwtToken)
+      return;
 
     setIsLoading(true);
     try {
-      console.log('Burning asset:', selectedAsset);
-      // TODO: Implement actual burning logic when backend is ready
-
-      const rewards = calculateRewards(selectedAsset);
-
-      let successMessage = `Successfully burned ${selectedAsset.name}! `;
-
-      if (selectedAsset.type === ForgeTabValue.CAPTAIN) {
-        successMessage += `You will receive a new NFT from The Captain's Club Collection. `;
+      // Check if all selected assets are non-minted (burning minted assets not allowed for multiple)
+      if (
+        selectedAssets.length > 1 &&
+        selectedAssets.some((asset) => asset.minted)
+      ) {
+        toast.error('Multiple burning is only allowed for non-minted entities');
+        setIsLoading(false);
+        return;
       }
 
-      const rewardParts = [];
-      if (rewards.shipTokens > 0)
-        rewardParts.push(`${rewards.shipTokens} Ship Tokens`);
-      if (rewards.crewTokens > 0)
-        rewardParts.push(`${rewards.crewTokens} Crew Tokens`);
-      if (rewards.itemTokens > 0)
-        rewardParts.push(`${rewards.itemTokens} Item Tokens`);
-      if (rewards.goldTokens > 0)
-        rewardParts.push(`${rewards.goldTokens} Gold Tokens`);
+      if (
+        selectedAssets.length === 1 &&
+        selectedAssets[0].type === ForgeTabValue.CAPTAIN
+      ) {
+        // Handle single captain burn (original logic)
+        console.log('Burning captain:', selectedAssets[0]);
+        // TODO: Implement captain burning logic when backend is ready
+        toast.success(`Successfully burned ${selectedAssets[0].name}!`);
+      } else {
+        // Handle multiple asset burning using swap entities endpoint
+        const swapRequests: SwapEntityRequest[] = selectedAssets.map(
+          (asset) => ({
+            type: asset.type as 'CREW' | 'SHIP' | 'ITEM',
+            entityId: asset.id,
+          }),
+        );
 
-      if (rewardParts.length > 0) {
-        successMessage += `Received: ${rewardParts.join(', ')}`;
+        await swapEntitiesWithTokens(swapRequests);
       }
 
-      toast.success(successMessage);
-
-      setSelectedAsset(null);
+      setSelectedAssets([]);
       setIsConfirmModalOpen(false);
     } catch (error) {
-      toast.error('Failed to burn asset. Please try again.');
+      toast.error('Failed to burn assets. Please try again.');
     } finally {
       setIsLoading(false);
     }
   }, [
-    selectedAsset,
+    selectedAssets,
     auth.jwtToken,
-    calculateRewards,
-    setSelectedAsset,
+    swapEntitiesWithTokens,
+    setSelectedAssets,
     setIsConfirmModalOpen,
     setIsLoading,
   ]);
 
-  // Calculate current rewards
+  // Calculate current rewards for all selected assets
   const currentRewards = useMemo(() => {
-    return selectedAsset ? calculateRewards(selectedAsset) : null;
-  }, [
-    selectedAsset?.id,
-    selectedAsset?.level,
-    selectedAsset?.type,
-    selectedAsset?.minted,
-    calculateRewards,
-  ]);
+    return selectedAssets.length > 0 ? calculateRewards(selectedAssets) : null;
+  }, [selectedAssets, calculateRewards]);
 
   return {
     currentAssets,
     currentRewards,
     handleAssetSelect,
+    handleAssetSelectMultiple,
     handleTabChange,
     handleBurn,
     handleConfirmBurn,
     calculateRewards,
+    canSelectMultiple,
+    handleSelectAll,
+    handleClearSelection,
+    loading: swapLoading,
   };
 };
