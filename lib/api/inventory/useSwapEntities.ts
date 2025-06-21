@@ -70,13 +70,6 @@ export const useSwapEntities = () => {
         });
 
         setJobId(response.jobId || '');
-        toast.success(
-          `Successfully initiated swap for ${
-            entities.length
-          } ${entities[0].type.toLowerCase()}${
-            entities.length > 1 ? 's' : ''
-          }!`,
-        );
       } catch (error: any) {
         toast.error(error.message || 'Error during entity swap');
         setLoading(false);

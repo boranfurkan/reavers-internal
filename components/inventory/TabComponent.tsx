@@ -6,7 +6,7 @@ import HideoutComponent from './Hideout/HideoutComponent';
 import ExchangeComponent from './exchange/ExchangeComponent';
 import { LayerContext } from '../../contexts/LayerContext';
 import { Select } from 'antd';
-import UpgradeComponent from './upgrade/UpgradeComponent';
+
 import TreasureLeaderboard from './leaderboards/TreasureLeaderboard';
 import TheArenaLeaderboard from './leaderboards/Arena/TheArenaLeaderboard';
 

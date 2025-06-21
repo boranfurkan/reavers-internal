@@ -1,7 +1,7 @@
-// components/forge/ForgeBurnPreview.tsx - Updated for multiple assets
+// components/forge/ForgeBurnPreview.tsx - Improved with detailed rewards
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Coins, Flame, Users } from 'lucide-react';
+import { Coins, Flame, Users, AlertTriangle, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 
 import CaptainIcon from '../../assets/captain-icon';
@@ -12,7 +12,7 @@ import ItemsIcon from '../../assets/items-icon';
 import GoldTokenIcon from '../../assets/gold-token-icon';
 
 interface ForgeBurnPreviewProps {
-  selectedAssets: ForgeAsset[]; // Changed from selectedAsset
+  selectedAssets: ForgeAsset[];
   currentRewards: ForgeReward | null;
   isLoading: boolean;
   onBurn: () => void;
@@ -36,7 +36,7 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
         <p className="max-w-xs text-sm text-white/60">
           Choose one or more{' '}
           {isMobile
-            ? ''
+            ? 'assets to see burn rewards and proceed.'
             : 'assets from the left panel to see burn rewards and proceed with the operation.'}
         </p>
       </div>
@@ -46,6 +46,7 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
   const isMultipleSelection = selectedAssets.length > 1;
   const firstAsset = selectedAssets[0];
   const hasMintedAssets = selectedAssets.some((asset) => asset.minted);
+  const hasNonMintedAssets = selectedAssets.some((asset) => !asset.minted);
 
   // Group assets by type for better display
   const assetsByType = selectedAssets.reduce((acc, asset) => {
@@ -54,6 +55,15 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
     acc[type].push(asset);
     return acc;
   }, {} as Record<ForgeTabValue, ForgeAsset[]>);
+
+  // Calculate detailed statistics
+  const totalLevels = selectedAssets.reduce(
+    (sum, asset) => sum + asset.level,
+    0,
+  );
+  const averageLevel = Math.round(totalLevels / selectedAssets.length);
+  const mintedCount = selectedAssets.filter((a) => a.minted).length;
+  const nonMintedCount = selectedAssets.filter((a) => !a.minted).length;
 
   const getTypeIcon = (type: ForgeTabValue) => {
     switch (type) {
@@ -68,10 +78,21 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
     }
   };
 
+  const canBurn = selectedAssets.length > 0 && currentRewards;
+  const hasWarning =
+    isMultipleSelection && hasMintedAssets && hasNonMintedAssets;
+
+  // Get total reward value for comparison
+  const totalTokenRewards = currentRewards
+    ? currentRewards.shipTokens +
+      currentRewards.crewTokens +
+      currentRewards.itemTokens
+    : 0;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-6">
-        {/* Header */}
+        {/* Header with Statistics */}
         <div>
           <h3 className="mb-4 flex items-center gap-2 font-Header text-lg font-bold text-white">
             <Users className="h-5 w-5" />
@@ -79,6 +100,46 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
               ? `${selectedAssets.length} Assets Selected`
               : 'Asset to Burn'}
           </h3>
+
+          {/* Detailed Statistics */}
+          {isMultipleSelection && (
+            <div className="mb-4 grid grid-cols-3 gap-3 rounded-lg border border-reavers-border bg-reavers-bg-secondary p-3">
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">
+                  {totalLevels}
+                </div>
+                <div className="text-xs text-white/60">Total Levels</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">
+                  {averageLevel}
+                </div>
+                <div className="text-xs text-white/60">Avg Level</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">
+                  {Object.keys(assetsByType).length}
+                </div>
+                <div className="text-xs text-white/60">Asset Types</div>
+              </div>
+            </div>
+          )}
+
+          {/* Warning for mixed minted/non-minted selection */}
+          {hasWarning && (
+            <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm font-medium text-yellow-500">
+                  Mixed Selection Warning
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-yellow-500/80">
+                You have both minted NFTs and non-minted assets selected.
+                Rewards may vary.
+              </p>
+            </div>
+          )}
 
           {/* Selected Assets Display */}
           <div className="space-y-4">
@@ -95,27 +156,35 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                         {assets.length} {type.toLowerCase()}
                         {assets.length > 1 ? 's' : ''}
                       </span>
+                      <span className="text-xs text-white/60">
+                        Avg Lv.{' '}
+                        {Math.round(
+                          assets.reduce((sum, a) => sum + a.level, 0) /
+                            assets.length,
+                        )}
+                      </span>
                     </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                      {assets.slice(0, 6).map((asset, index) => (
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {assets.slice(0, 8).map((asset) => (
                         <div key={asset.id} className="relative">
-                          <div className="aspect-square overflow-hidden rounded border border-reavers-border/50">
+                          <div className="aspect-square overflow-hidden rounded border border-reavers-border">
                             <img
                               src={asset.imageUrl}
                               alt={asset.name}
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          <div className="absolute -right-1 -top-1 rounded bg-black/80 px-1 text-xs text-white">
-                            {asset.level}
+                          {asset.minted && (
+                            <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-reavers-fill" />
+                          )}
+                          <div className="mt-1 truncate text-xs text-white/70">
+                            Lv.{asset.level}
                           </div>
                         </div>
                       ))}
-
-                      {assets.length > 6 && (
-                        <div className="flex aspect-square items-center justify-center rounded border border-reavers-border/50 bg-reavers-bg text-xs text-white/60">
-                          +{assets.length - 6}
+                      {assets.length > 8 && (
+                        <div className="flex aspect-square items-center justify-center rounded border border-reavers-border bg-reavers-bg text-xs font-medium text-white">
+                          +{assets.length - 8}
                         </div>
                       )}
                     </div>
@@ -126,15 +195,15 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
               // Single asset - show detailed view
               <div className="rounded-lg border border-reavers-border bg-reavers-bg-secondary p-4">
                 <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 overflow-hidden rounded-lg border border-reavers-border">
+                  <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-reavers-border">
                     <img
                       src={firstAsset.imageUrl}
                       alt={firstAsset.name}
                       className="h-full w-full object-cover"
                     />
                   </div>
-                  <div className="flex h-full flex-1 flex-col items-start justify-between gap-1.5">
-                    <div className="font-Body text-base font-medium text-white">
+                  <div className="flex h-full min-w-0 flex-1 flex-col items-start justify-between gap-1.5">
+                    <div className="w-full truncate font-Body text-base font-medium text-white">
                       {firstAsset.name}
                     </div>
                     <div className="font-Body text-sm text-white/60">
@@ -149,118 +218,176 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                 </div>
               </div>
             )}
-
-            {/* Warning for minted assets */}
-            {hasMintedAssets && isMultipleSelection && (
-              <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
-                <div className="text-sm text-yellow-400">
-                  ⚠️ Warning: Multiple minted assets cannot be burned together.
-                  Please select only one minted asset at a time.
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Burn Rewards */}
-        <div>
-          <h3 className="mb-4 font-Header text-lg font-bold text-white">
-            Burn Rewards
-          </h3>
+        {/* Enhanced Rewards Section */}
+        {currentRewards && (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="flex items-center gap-2 font-Header text-base font-bold text-white">
+                <Coins className="h-4 w-4" />
+                Burn Rewards
+              </h4>
+              {totalTokenRewards > 0 && (
+                <div className="flex items-center gap-1 text-sm text-reavers-fill">
+                  <TrendingUp className="h-3 w-3" />
+                  {totalTokenRewards.toLocaleString()} total
+                </div>
+              )}
+            </div>
 
-          {currentRewards ? (
+            {/* Detailed Reward Breakdown */}
             <div className="space-y-3">
-              {/* Token Rewards */}
+              {/* Ship Tokens */}
               {currentRewards.shipTokens > 0 && (
-                <div className="flex items-center justify-between rounded-md bg-black/30 p-3">
-                  <div className="flex items-center gap-3">
-                    <ShipIcon className="h-5 w-5 text-blue-400" />
-                    <span className="text-sm font-medium text-white">
-                      Ship Tokens
-                    </span>
+                <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShipIcon className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-blue-400">
+                        Ship Tokens
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-blue-400">
+                      {currentRewards.shipTokens.toLocaleString()}
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-blue-400">
-                    +{currentRewards.shipTokens.toLocaleString()}
-                  </span>
+                  <div className="mt-2 text-xs text-blue-400/80">
+                    Base: {Math.floor(currentRewards.shipTokens * 0.8)} +
+                    {hasMintedAssets ? ' Minted bonus' : ' Standard rate'}
+                  </div>
                 </div>
               )}
 
+              {/* Crew Tokens */}
               {currentRewards.crewTokens > 0 && (
-                <div className="flex items-center justify-between rounded-md bg-black/30 p-3">
-                  <div className="flex items-center gap-3">
-                    <CrewIcon className="h-5 w-5 text-green-400" />
-                    <span className="text-sm font-medium text-white">
-                      Crew Tokens
-                    </span>
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CrewIcon className="h-4 w-4 text-green-400" />
+                      <span className="text-sm font-medium text-green-400">
+                        Crew Tokens
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-green-400">
+                      {currentRewards.crewTokens.toLocaleString()}
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-green-400">
-                    +{currentRewards.crewTokens.toLocaleString()}
-                  </span>
+                  <div className="mt-2 text-xs text-green-400/80">
+                    Base: {Math.floor(currentRewards.crewTokens * 0.8)} +
+                    {hasMintedAssets ? ' Minted bonus' : ' Standard rate'}
+                  </div>
                 </div>
               )}
 
+              {/* Item Tokens */}
               {currentRewards.itemTokens > 0 && (
-                <div className="flex items-center justify-between rounded-md bg-black/30 p-3">
-                  <div className="flex items-center gap-3">
-                    <ItemsIcon className="h-5 w-5 text-purple-400" />
-                    <span className="text-sm font-medium text-white">
-                      Item Tokens
-                    </span>
+                <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ItemsIcon className="h-4 w-4 text-purple-400" />
+                      <span className="text-sm font-medium text-purple-400">
+                        Item Tokens
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-purple-400">
+                      {currentRewards.itemTokens.toLocaleString()}
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-purple-400">
-                    +{currentRewards.itemTokens.toLocaleString()}
-                  </span>
+                  <div className="mt-2 text-xs text-purple-400/80">
+                    Base: {Math.floor(currentRewards.itemTokens * 0.8)} +
+                    {hasMintedAssets ? ' Minted bonus' : ' Standard rate'}
+                  </div>
                 </div>
               )}
 
+              {/* Gold Tokens */}
               {currentRewards.goldTokens > 0 && (
-                <div className="flex items-center justify-between rounded-md bg-black/30 p-3">
-                  <div className="flex items-center gap-3">
-                    <GoldTokenIcon className="h-5 w-5 text-yellow-400" />
-                    <span className="text-sm font-medium text-white">
-                      Gold Tokens
-                    </span>
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <GoldTokenIcon className="h-4 w-4 text-yellow-400" />
+                      <span className="text-sm font-medium text-yellow-400">
+                        Gold Tokens
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-yellow-400">
+                      {currentRewards.goldTokens.toLocaleString()}
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-yellow-400">
-                    +{currentRewards.goldTokens.toLocaleString()}
-                  </span>
-                </div>
-              )}
-
-              {/* Special case for captains */}
-              {firstAsset.type === ForgeTabValue.CAPTAIN && (
-                <div className="rounded-md border border-purple-500/30 bg-purple-500/10 p-3">
-                  <div className="text-sm text-purple-300">
-                    🎭 Burning a Captain will grant you a new NFT from The
-                    Captain's Club Collection
+                  <div className="mt-2 text-xs text-yellow-400/80">
+                    {hasMintedAssets
+                      ? `Minted NFT bonus: ${currentRewards.goldTokens} per asset`
+                      : 'No gold bonus for non-minted assets'}
                   </div>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="text-sm text-white/60">No rewards calculated</div>
-          )}
-        </div>
+
+            {/* Detailed Reward Summary */}
+            <div className="mt-4 rounded-lg border border-reavers-fill/30 bg-reavers-fill/10 p-3">
+              <div className="mb-2 text-sm font-medium text-reavers-fill">
+                Reward Calculation Summary
+              </div>
+              <div className="space-y-1 text-xs text-reavers-fill/80">
+                <div>• Total assets: {selectedAssets.length}</div>
+                <div>• Combined levels: {totalLevels}</div>
+                {mintedCount > 0 && (
+                  <div>• Minted NFTs: {mintedCount} (bonus rewards)</div>
+                )}
+                {nonMintedCount > 0 && (
+                  <div>• Non-minted: {nonMintedCount} (standard rates)</div>
+                )}
+                <div>
+                  • Token types:{' '}
+                  {[
+                    currentRewards.shipTokens > 0 ? 'Ship' : null,
+                    currentRewards.crewTokens > 0 ? 'Crew' : null,
+                    currentRewards.itemTokens > 0 ? 'Item' : null,
+                    currentRewards.goldTokens > 0 ? 'Gold' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(', ')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Burn Button */}
       <div className="border-t border-reavers-border pt-4">
-        <button
+        <motion.button
+          whileHover={{ scale: canBurn ? 1.02 : 1 }}
+          whileTap={{ scale: canBurn ? 0.98 : 1 }}
           onClick={onBurn}
-          disabled={isLoading || (hasMintedAssets && isMultipleSelection)}
-          className={`w-full rounded-md px-4 py-3 font-medium transition-all ${
-            isLoading || (hasMintedAssets && isMultipleSelection)
-              ? 'cursor-not-allowed bg-gray-600 text-gray-400'
-              : 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
+          disabled={!canBurn || isLoading}
+          className={`w-full rounded-lg border-2 py-3 font-Header text-base font-bold uppercase transition-all duration-200 ${
+            canBurn && !isLoading
+              ? 'border-red-500 bg-gradient-to-r from-red-500 to-orange-500 text-white hover:shadow-lg hover:shadow-red-500/25'
+              : 'cursor-not-allowed border-reavers-border bg-reavers-bg-secondary text-white/50'
           }`}>
-          {isLoading
-            ? 'Processing...'
-            : hasMintedAssets && isMultipleSelection
-            ? 'Cannot burn multiple minted assets'
-            : `Burn ${selectedAssets.length} Asset${
-                selectedAssets.length > 1 ? 's' : ''
-              }`}
-        </button>
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Burning...
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <Flame className="h-4 w-4" />
+              Burn{' '}
+              {isMultipleSelection
+                ? `${selectedAssets.length} Assets`
+                : 'Asset'}
+            </div>
+          )}
+        </motion.button>
+
+        {/* Warning text */}
+        <p className="mb-10 mt-2 text-center text-xs text-white/60">
+          This action cannot be undone. Assets will be permanently destroyed.
+        </p>
       </div>
     </div>
   );

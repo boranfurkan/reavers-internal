@@ -111,7 +111,7 @@ const StrengthDisplay: React.FC<StrengthDisplayProps> = ({
 }) => {
   // Calculate strength percentage if character is provided
   const strengthPercentage = character
-    ? getStrengthPercentage(strength, character)
+    ? getStrengthPercentage(strength)
     : 0;
 
   // Get text color based on the strength percentage

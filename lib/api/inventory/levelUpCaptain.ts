@@ -9,7 +9,7 @@ export const levelUpCaptain = async ({
   levelUpCount: number;
   jwtToken: string;
 }) => {
-  const endpoint = `${config.worker_server_url}/inventory/level-up-entities`;
+  const endpoint = `${config.worker_server_url}/inventory/level-up-captain`;
 
   const res = await fetch(endpoint, {
     method: 'POST',

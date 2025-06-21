@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Sheet } from 'react-modal-sheet';
-import { Flame, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Flame, ChevronLeft, Users, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ForgeModalProps } from '../../types/forge';
+import { ForgeModalProps, ForgeAsset } from '../../types/forge';
 import { ForgeTabNavigation } from './ForgeTabNavigation';
 import { ForgeAssetGrid } from './ForgeAssetGrid';
 import { ForgeBurnPreview } from './ForgeBurnPreview';
@@ -13,30 +13,34 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
   isOpen,
   onClose,
   activeTab,
-  selectedAsset,
+  selectedAssets,
   currentAssets,
   currentRewards,
   isLoading,
   nftsLoading,
   onTabChange,
   onAssetSelect,
+  onAssetSelectMultiple,
   onBurn,
+  canSelectMultiple,
+  onSelectAll,
+  onClearSelection,
 }) => {
   const [currentView, setCurrentView] = useState<MobileView>('assets');
 
-  // Auto-switch to preview when asset is selected (only if currently on assets view)
-  React.useEffect(() => {
-    if (selectedAsset && currentView === 'assets') {
-      setCurrentView('preview');
-    }
-  }, [selectedAsset]); // Remove currentView from dependencies to prevent conflicts
+  // Remove automatic view switching - let user control navigation
+  // React.useEffect(() => {
+  //   if (selectedAssets.length > 0 && currentView === 'assets') {
+  //     setCurrentView('preview');
+  //   }
+  // }, [selectedAssets.length]);
 
-  // Reset view when asset is deselected or modal closes
+  // Reset view when assets are deselected
   React.useEffect(() => {
-    if (!selectedAsset) {
+    if (selectedAssets.length === 0) {
       setCurrentView('assets');
     }
-  }, [selectedAsset]);
+  }, [selectedAssets.length]);
 
   // Reset view when modal opens
   React.useEffect(() => {
@@ -45,24 +49,19 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleAssetSelect = (asset: any) => {
+  const handleAssetSelect = (asset: ForgeAsset) => {
     onAssetSelect(asset);
-    // View change will be handled by useEffect
   };
 
   const handleBackToAssets = () => {
     setCurrentView('assets');
-    // Optionally deselect the asset when going back
-    // onAssetSelect(null);
   };
 
-  const handleViewChange = (view: MobileView) => {
-    // Only allow preview if an asset is selected
-    if (view === 'preview' && !selectedAsset) {
-      return;
-    }
-    setCurrentView(view);
+  const handleViewPreview = () => {
+    setCurrentView('preview');
   };
+
+  const hasSelection = selectedAssets.length > 0;
 
   return (
     <Sheet isOpen={isOpen} onClose={onClose} snapPoints={[0.9]} initialSnap={0}>
@@ -75,7 +74,7 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
           <Sheet.Header className="rounded-t-lg border-0 !bg-reavers-bg-secondary" />
           <div className="flex items-center justify-between border-t-[1px] border-white/5 p-4">
             <div className="flex items-center gap-3">
-              {currentView === 'preview' && selectedAsset && (
+              {currentView === 'preview' && hasSelection && (
                 <button
                   onClick={handleBackToAssets}
                   className="flex items-center justify-center rounded-md bg-reavers-bg p-2 transition-colors hover:bg-reavers-border active:scale-95">
@@ -84,11 +83,21 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
               )}
               <Flame className="h-6 w-6 text-orange-500" />
               <h2 className="font-Header text-xl font-bold uppercase text-white">
-                {currentView === 'preview' ? 'Burn Preview' : 'The Forge'}
+                {currentView === 'preview' && hasSelection
+                  ? 'Burn Preview'
+                  : 'The Forge'}
               </h2>
+
+              {/* Clean mobile selection indicator */}
+              {selectedAssets.length > 0 && currentView === 'assets' && (
+                <div className="flex items-center gap-1 rounded-md bg-reavers-fill/20 px-2 py-1 text-sm font-medium text-reavers-fill">
+                  <Users className="h-3 w-3" />
+                  {selectedAssets.length}
+                </div>
+              )}
             </div>
 
-            {/* View indicator dots */}
+            {/* Clean view indicator dots */}
             <div className="flex gap-2">
               <div
                 className={`h-2 w-2 rounded-full transition-colors ${
@@ -118,10 +127,14 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
                   <MobileAssetsView
                     activeTab={activeTab}
                     currentAssets={currentAssets}
-                    selectedAsset={selectedAsset}
+                    selectedAssets={selectedAssets}
                     nftsLoading={nftsLoading}
                     onTabChange={onTabChange}
                     onAssetSelect={handleAssetSelect}
+                    canSelectMultiple={canSelectMultiple}
+                    onSelectAll={onSelectAll}
+                    onClearSelection={onClearSelection}
+                    onViewPreview={handleViewPreview}
                   />
                 </motion.div>
               )}
@@ -135,7 +148,7 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
                   transition={{ duration: 0.2 }}
                   className="h-full overflow-y-auto p-4">
                   <MobilePreviewView
-                    selectedAsset={selectedAsset}
+                    selectedAssets={selectedAssets}
                     currentRewards={currentRewards}
                     isLoading={isLoading}
                     onBurn={onBurn}
@@ -146,30 +159,63 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
             </AnimatePresence>
           </div>
         </Sheet.Content>
+
+        {/* Mobile Bottom Panel - Show when assets are selected and on assets view */}
+        {selectedAssets.length > 0 && currentView === 'assets' && (
+          <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-reavers-border bg-reavers-bg-secondary p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-white">
+                  {selectedAssets.length} asset
+                  {selectedAssets.length > 1 ? 's' : ''} selected
+                </div>
+                {currentRewards && (
+                  <div className="text-xs text-white/60">Ready to burn</div>
+                )}
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleViewPreview}
+                className="flex items-center gap-2 rounded-lg bg-reavers-fill px-4 py-2 font-Header text-sm font-bold uppercase text-white transition-all duration-200 hover:bg-reavers-fill/80">
+                <Eye className="h-3 w-3" />
+                Preview Burn
+              </motion.button>
+            </div>
+          </div>
+        )}
       </Sheet.Container>
-      <Sheet.Backdrop />
     </Sheet>
   );
 };
 
-// Separate component for assets view
+// Clean assets view for mobile - Updated with preview button
 const MobileAssetsView: React.FC<{
   activeTab: any;
-  currentAssets: any[];
-  selectedAsset: any;
+  currentAssets: ForgeAsset[];
+  selectedAssets: ForgeAsset[];
   nftsLoading: boolean;
   onTabChange: (tab: any) => void;
-  onAssetSelect: (asset: any) => void;
+  onAssetSelect: (asset: ForgeAsset) => void;
+  canSelectMultiple?: boolean;
+  onSelectAll?: () => void;
+  onClearSelection?: () => void;
+  onViewPreview?: () => void;
 }> = ({
   activeTab,
   currentAssets,
-  selectedAsset,
+  selectedAssets,
   nftsLoading,
   onTabChange,
   onAssetSelect,
+  canSelectMultiple,
+  onSelectAll,
+  onClearSelection,
+  onViewPreview,
 }) => (
   <div className="space-y-6">
-    {/* Tab Navigation */}
+    {/* Asset Type Navigation */}
     <div>
       <h3 className="mb-4 font-Header text-lg font-bold text-white">
         Select Asset Type
@@ -181,130 +227,82 @@ const MobileAssetsView: React.FC<{
       />
     </div>
 
-    {/* Asset Grid */}
-    <div>
+    {/* Asset Grid with integrated controls */}
+    <div className={selectedAssets.length > 0 ? 'pb-20' : ''}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-Header text-lg font-bold text-white">
           Your {activeTab}s
         </h3>
-        {currentAssets.length > 0 && (
-          <span className="font-Body text-sm text-white/60">
-            {currentAssets.length} available
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {currentAssets.length > 0 && (
+            <span className="font-Body text-sm text-white/60">
+              {currentAssets.length} total
+            </span>
+          )}
+          {selectedAssets.length > 0 && onViewPreview && (
+            <button
+              onClick={onViewPreview}
+              className="flex items-center gap-1 rounded-md bg-reavers-fill/20 px-2 py-1 text-xs font-medium text-reavers-fill transition-colors hover:bg-reavers-fill/30">
+              <Eye className="h-3 w-3" />
+              Preview ({selectedAssets.length})
+            </button>
+          )}
+        </div>
       </div>
 
       <ForgeAssetGrid
         assets={currentAssets}
-        selectedAsset={selectedAsset}
+        selectedAssets={selectedAssets}
         onAssetSelect={onAssetSelect}
         isLoading={nftsLoading}
         activeTab={activeTab}
         isMobile={true}
         gridCols="grid-cols-2 gap-3"
+        canSelectMultiple={canSelectMultiple}
+        onSelectAll={onSelectAll}
+        onClearSelection={onClearSelection}
       />
     </div>
-
-    {/* Selected Asset Quick Preview */}
-    {selectedAsset && (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-lg border border-reavers-fill/30 bg-reavers-fill/10 p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden rounded-md">
-            <img
-              src={selectedAsset.imageUrl}
-              alt={selectedAsset.name}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="flex-1">
-            <div className="font-Body text-sm font-medium text-white">
-              {selectedAsset.name}
-            </div>
-            <div className="font-Body text-xs text-white/60">
-              Level {selectedAsset.level} • Selected
-            </div>
-          </div>
-          <ChevronRight className="h-5 w-5 text-reavers-fill" />
-        </div>
-      </motion.div>
-    )}
   </div>
 );
 
-// Separate component for preview view
+// Clean preview view for mobile
 const MobilePreviewView: React.FC<{
-  selectedAsset: any;
+  selectedAssets: ForgeAsset[];
   currentRewards: any;
   isLoading: boolean;
   onBurn: () => void;
   onBack: () => void;
-}> = ({ selectedAsset, currentRewards, isLoading, onBurn, onBack }) => {
-  if (!selectedAsset) {
+}> = ({ selectedAssets, currentRewards, isLoading, onBurn, onBack }) => {
+  if (!selectedAssets || selectedAssets.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 font-Body text-white/60">No asset selected</div>
-          <button
-            onClick={onBack}
-            className="rounded-md bg-reavers-fill px-4 py-2 font-Body text-black active:scale-95">
-            Go Back
-          </button>
-        </div>
+      <div className="flex h-full flex-col items-center justify-center text-center">
+        <Flame className="mb-4 h-16 w-16 text-orange-500/50" />
+        <h3 className="mb-2 text-lg font-semibold text-white/80">
+          No Assets Selected
+        </h3>
+        <p className="mb-4 max-w-xs text-sm text-white/60">
+          Go back and select assets to burn.
+        </p>
+        <button
+          onClick={onBack}
+          className="rounded-md bg-reavers-fill px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-reavers-fill/80">
+          Back to Assets
+        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Selected Asset Details */}
-      <div>
-        <h3 className="mb-4 font-Header text-lg font-bold text-white">
-          Asset to Burn
-        </h3>
-
-        <div className="rounded-lg border border-reavers-border bg-reavers-bg-secondary p-4">
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 overflow-hidden rounded-lg border border-reavers-border">
-              <img
-                src={selectedAsset.imageUrl}
-                alt={selectedAsset.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="flex h-full flex-1 flex-col items-start justify-between gap-1.5">
-              <div className="font-Body text-base font-medium text-white">
-                {selectedAsset.name}
-              </div>
-              <div className="font-Body text-sm text-white/60">
-                Level {selectedAsset.level} • {selectedAsset.rarity}
-              </div>
-              {selectedAsset.minted && (
-                <div className="inline-block rounded bg-reavers-fill/20 px-2 py-1 font-Body text-xs text-reavers-fill">
-                  MINTED NFT
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Burn Preview */}
-      <div>
-        <h3 className="mb-4 font-Header text-lg font-bold text-white">
-          Burn Rewards
-        </h3>
-
-        <ForgeBurnPreview
-          selectedAsset={selectedAsset}
-          currentRewards={currentRewards}
-          isLoading={isLoading}
-          onBurn={onBurn}
-          isMobile={true}
-        />
-      </div>
+      {/* Use the enhanced burn preview component */}
+      <ForgeBurnPreview
+        selectedAssets={selectedAssets}
+        currentRewards={currentRewards}
+        isLoading={isLoading}
+        onBurn={onBurn}
+        isMobile={true}
+      />
     </div>
   );
 };

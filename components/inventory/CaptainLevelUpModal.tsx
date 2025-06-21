@@ -12,7 +12,6 @@ import { useContext } from 'react';
 import { LayerContext } from '../../contexts/LayerContext';
 import { NFTType } from '../../types/BaseEntity';
 
-import { UpgradeType } from '../../types/Upgrade';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import { config } from '../../config';
@@ -156,7 +155,6 @@ const CaptainLevelUpModal: React.FC<CaptainLevelUpModalProps> = ({
       });
 
       setJobId(response.jobId);
-      toast.success('Captain level up initiated!');
       onClose();
     } catch (error: any) {
       toast.error(error.message || 'Error during captain level-up');
@@ -189,6 +187,7 @@ const CaptainLevelUpModal: React.FC<CaptainLevelUpModalProps> = ({
 
         setLoading(false);
         setJobId('');
+        onClose();
       } else {
         // Handle timeout for long-running jobs
         const timeoutId = setTimeout(() => {
