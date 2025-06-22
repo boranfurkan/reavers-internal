@@ -1,4 +1,4 @@
-// types/forge.ts - Updated to support multiple selection
+// types/forge.ts - Updated to support multiple selection and new reward types
 export enum ForgeTabValue {
   CAPTAIN = 'CAPTAIN',
   SHIP = 'SHIP',
@@ -22,6 +22,8 @@ export interface ForgeReward {
   crewTokens: number;
   itemTokens: number;
   goldTokens: number;
+  captainClubNFT: number; // New: Captain's Club NFT rewards
+  mythicTokens: number; // New: Mythic token rewards for mythic ships
 }
 
 export interface ForgeModalProps {

@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlertTriangle, Flame, Users, Shield } from 'lucide-react';
+import { X, AlertTriangle, Flame, Users, Shield, InfoIcon } from 'lucide-react';
 import { ForgeAsset, ForgeTabValue } from '../../types/forge';
 
 interface ForgeConfirmModalProps {
   isOpen: boolean;
-  selectedAssets: ForgeAsset[]; // Changed from selectedAsset
+  selectedAssets: ForgeAsset[];
   isLoading: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -25,7 +25,9 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
   const isMultipleSelection = selectedAssets.length > 1;
   const hasMintedAssets = selectedAssets.some((asset) => asset.minted);
   const hasNonMintedAssets = selectedAssets.some((asset) => !asset.minted);
-  const isMixedSelection = hasMintedAssets && hasNonMintedAssets;
+  const hasLevel1Assets = selectedAssets.some(
+    (asset) => asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN,
+  );
   const firstAsset = selectedAssets[0];
 
   // Group assets by type for better display
@@ -133,7 +135,7 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
                         {totalLevels}
                       </span>
                     </div>
-                    {isMixedSelection && (
+                    {hasMintedAssets && hasNonMintedAssets && (
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-white/60">Selection Type:</span>
                         <span className="font-medium text-yellow-400">
@@ -171,18 +173,18 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
 
             {/* Warnings */}
             <div className="space-y-3">
-              {/* Mixed selection warning */}
-              {isMixedSelection && (
-                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
+              {/* Level 1 Assets Warning */}
+              {hasLevel1Assets && (
+                <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-3">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm font-medium text-yellow-500">
-                      Mixed Selection Warning
+                    <InfoIcon className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm font-medium text-orange-500">
+                      Level 1 Assets Notice
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-yellow-500/80">
-                    You're burning both minted NFTs and non-minted assets. This
-                    may have different burn mechanics and rewards.
+                  <p className="mt-1 text-xs text-orange-500/80">
+                    Level 1 ships, crews, and items will be burned but won't
+                    provide token rewards to prevent market abuse.
                   </p>
                 </div>
               )}
@@ -216,8 +218,8 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
                 </div>
                 <p className="mt-1 text-xs text-red-500/80">
                   {isMultipleSelection
-                    ? 'All selected assets will be permanently destroyed and converted to tokens. This action cannot be undone.'
-                    : 'This asset will be permanently destroyed and converted to tokens. This action cannot be undone.'}
+                    ? 'All selected assets will be permanently destroyed. This action cannot be undone.'
+                    : 'This asset will be permanently destroyed. This action cannot be undone.'}
                 </p>
               </div>
             </div>

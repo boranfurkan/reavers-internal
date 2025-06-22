@@ -1,4 +1,3 @@
-// components/forge/ForgeAssetGrid.tsx - Fixed version addressing all issues
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -9,6 +8,7 @@ import {
   Minus,
   Shield,
   Coins,
+  Lock,
 } from 'lucide-react';
 import ReaverLoaderNoOverlay from '../ReaverLoaderNoOverlay';
 import { ForgeAsset, ForgeTabValue } from '../../types/forge';
@@ -97,6 +97,23 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
     return index >= 0 ? index + 1 : null;
   };
 
+  // Check if asset can be selected - UPDATED: No multiple selection for minted entities
+  const canAssetBeSelected = (asset: ForgeAsset) => {
+    const selected = isAssetSelected(asset);
+
+    // Already selected assets can always be deselected
+    if (selected) return true;
+
+    // If no assets selected, all can be selected
+    if (selectedAssets.length === 0) return true;
+
+    // For minted assets: only single selection allowed
+    if (asset.minted) return selectedAssets.length === 0;
+
+    // For non-minted assets: can select if all current selections are also non-minted
+    return selectedAssets.every((a) => !a.minted);
+  };
+
   // Get counts for tabs
   const tabCounts = {
     all: assets.length,
@@ -107,18 +124,21 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
   const AssetCard: React.FC<{ asset: ForgeAsset }> = ({ asset }) => {
     const selected = isAssetSelected(asset);
     const selectionNumber = getSelectionNumber(asset);
-    const canSelect =
-      canSelectMultiple || selectedAssets.length === 0 || selected;
+    const canSelect = canAssetBeSelected(asset);
+
+    // Check if this asset is disabled due to selection rules
+    const isDisabled = !canSelect && !selected;
 
     return (
       <motion.div
-        layout // This prevents re-animation on re-renders
+        layout
         className={cn(
-          'group relative cursor-pointer overflow-hidden rounded-lg border-2 transition-all duration-200',
+          'group relative overflow-hidden rounded-lg border-2 transition-all duration-200',
           selected
             ? 'border-reavers-fill bg-reavers-fill/10 shadow-lg shadow-reavers-fill/25'
-            : 'border-reavers-border bg-reavers-bg-secondary hover:border-reavers-fill/50',
-          !canSelect && !selected && 'cursor-not-allowed opacity-50',
+            : isDisabled
+            ? 'cursor-not-allowed border-reavers-border/30 bg-reavers-bg-secondary/50 opacity-40'
+            : 'cursor-pointer border-reavers-border bg-reavers-bg-secondary hover:border-reavers-fill/50',
         )}
         onClick={() => canSelect && onAssetSelect(asset)}>
         {/* Asset Image */}
@@ -126,7 +146,10 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
           <img
             src={asset.imageUrl}
             alt={asset.name}
-            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+            className={cn(
+              'h-full w-full object-cover transition-transform duration-200',
+              !isDisabled && 'group-hover:scale-105',
+            )}
           />
         </div>
 
@@ -140,19 +163,52 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
             ) : (
               <CheckCircle className="h-6 w-6 text-reavers-fill" />
             )
+          ) : isDisabled ? (
+            <Lock className="h-6 w-6 text-white/20" />
           ) : (
             <Circle className="h-6 w-6 text-white/40 transition-colors group-hover:text-reavers-fill/70" />
           )}
         </div>
 
-        {/* Original Minted Badge - Restored */}
+        {/* Minted Badge */}
         {asset.minted && (
           <div className="absolute left-2 top-2">
-            <div className="inline-block rounded bg-reavers-fill/20 px-2 py-1 font-Body text-xs text-reavers-fill">
-              MINTED NFT
+            <div className="inline-flex items-center gap-1 rounded bg-reavers-fill px-2 py-1 font-Body text-xs text-white">
+              <Shield className="h-3 w-3" />
+              MINTED
             </div>
           </div>
         )}
+
+        {/* Multiple Selection Warning for Minted */}
+        {asset.minted &&
+          selectedAssets.length > 0 &&
+          !selected &&
+          selectedAssets.some((a) => !a.minted) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+              <div className="rounded-lg bg-black/80 p-2 text-center">
+                <Lock className="mx-auto mb-1 h-4 w-4 text-white/60" />
+                <div className="text-xs text-white/80">
+                  Cannot mix with non-minted
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* Non-minted Selection Warning when minted selected */}
+        {!asset.minted &&
+          selectedAssets.length > 0 &&
+          !selected &&
+          selectedAssets.some((a) => a.minted) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+              <div className="rounded-lg bg-black/80 p-2 text-center">
+                <Lock className="mx-auto mb-1 h-4 w-4 text-white/60" />
+                <div className="text-xs text-white/80">
+                  Cannot mix with minted
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* Asset Info */}
         <div className="p-3">
@@ -166,14 +222,14 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
         </div>
 
         {/* Selection Overlay */}
-        {selected && <div className="absolute inset-0 bg-reavers-fill/10 " />}
+        {selected && <div className="absolute inset-0 bg-reavers-fill/10" />}
       </motion.div>
     );
   };
 
   return (
     <div className="space-y-4">
-      {/* Compact Selection Info - Fixed expansion issue */}
+      {/* Selection Info */}
       {selectedAssets.length > 0 && (
         <div className="rounded-lg border border-reavers-fill/30 bg-reavers-fill/10 p-3">
           <div className="flex items-center justify-between">
@@ -182,18 +238,22 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
               <span className="text-sm font-medium text-reavers-fill">
                 {selectedAssets.length} selected
               </span>
+              {selectedAssets.some((a) => a.minted) && (
+                <div className="flex items-center gap-1 rounded bg-blue-500/20 px-2 py-0.5 text-xs text-blue-400">
+                  <Shield className="h-3 w-3" />
+                  Minted
+                </div>
+              )}
             </div>
-            {canSelectMultiple && (
-              <button
-                onClick={onClearSelection}
-                className="flex items-center gap-1 rounded-md bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/30">
-                <Minus className="h-3 w-3" />
-                Clear
-              </button>
-            )}
+            <button
+              onClick={onClearSelection}
+              className="flex items-center gap-1 rounded-md bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/30">
+              <Minus className="h-3 w-3" />
+              Clear
+            </button>
           </div>
 
-          {/* Compact preview - Limited to 5 items max */}
+          {/* Compact preview */}
           <div className="mt-2 flex items-center gap-2">
             <div className="flex -space-x-1">
               {selectedAssets.slice(0, 5).map((asset, index) => (
@@ -223,11 +283,11 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
         </div>
       )}
 
-      {/* Fixed Tab System - Better sizing */}
+      {/* Tab System */}
       <div className="space-y-4">
-        {/* Tab Navigation - Fixed sizing issues */}
+        {/* Tab Navigation */}
         <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-3 gap-2 bg-reavers-bg-secondary p-1">
+          <div className="grid grid-cols-3 gap-2 rounded-lg bg-reavers-bg-secondary p-1">
             {(
               [
                 { key: 'all', label: 'All', icon: Coins },
@@ -265,10 +325,11 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
             })}
           </div>
 
-          {/* Quick Actions - Better sizing */}
+          {/* Quick Actions - Only show for non-minted when multiple selection is possible */}
           {canSelectMultiple &&
             filterTab === 'non-minted' &&
-            nonMintedAssets.length > 0 && (
+            nonMintedAssets.length > 0 &&
+            selectedAssets.every((a) => !a.minted) && (
               <button
                 onClick={onSelectAll}
                 className="flex items-center gap-2 whitespace-nowrap rounded-md bg-reavers-fill/20 px-3 py-2 text-sm font-medium text-reavers-fill transition-colors hover:bg-reavers-fill/30">
@@ -278,7 +339,7 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
             )}
         </div>
 
-        {/* Assets Grid - No animation re-trigger */}
+        {/* Assets Grid */}
         {filteredAssets.length > 0 ? (
           <div className={cn('grid gap-3', gridCols)}>
             {filteredAssets.map((asset) => (

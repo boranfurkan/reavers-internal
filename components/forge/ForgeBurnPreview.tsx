@@ -1,8 +1,17 @@
-// components/forge/ForgeBurnPreview.tsx - Improved with detailed rewards
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Coins, Flame, Users, AlertTriangle, TrendingUp } from 'lucide-react';
-import Image from 'next/image';
+import {
+  Coins,
+  Flame,
+  Users,
+  AlertTriangle,
+  TrendingUp,
+  Crown,
+  Gift,
+  Star,
+  Zap,
+  InfoIcon,
+} from 'lucide-react';
 
 import CaptainIcon from '../../assets/captain-icon';
 import { ForgeAsset, ForgeReward, ForgeTabValue } from '../../types/forge';
@@ -46,7 +55,9 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
   const isMultipleSelection = selectedAssets.length > 1;
   const firstAsset = selectedAssets[0];
   const hasMintedAssets = selectedAssets.some((asset) => asset.minted);
-  const hasNonMintedAssets = selectedAssets.some((asset) => !asset.minted);
+  const hasLevel1Assets = selectedAssets.some(
+    (asset) => asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN,
+  );
 
   // Group assets by type for better display
   const assetsByType = selectedAssets.reduce((acc, asset) => {
@@ -78,16 +89,7 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
     }
   };
 
-  const canBurn = selectedAssets.length > 0 && currentRewards;
-  const hasWarning =
-    isMultipleSelection && hasMintedAssets && hasNonMintedAssets;
-
-  // Get total reward value for comparison
-  const totalTokenRewards = currentRewards
-    ? currentRewards.shipTokens +
-      currentRewards.crewTokens +
-      currentRewards.itemTokens
-    : 0;
+  const canBurn = selectedAssets.length > 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -125,18 +127,18 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
             </div>
           )}
 
-          {/* Warning for mixed minted/non-minted selection */}
-          {hasWarning && (
-            <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
+          {/* Level 1 Warning */}
+          {hasLevel1Assets && (
+            <div className="mb-4 rounded-lg border border-orange-500/30 bg-orange-500/10 p-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm font-medium text-yellow-500">
-                  Mixed Selection Warning
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-medium text-orange-500">
+                  Level 1 Assets Notice
                 </span>
               </div>
-              <p className="mt-1 text-xs text-yellow-500/80">
-                You have both minted NFTs and non-minted assets selected.
-                Rewards may vary.
+              <p className="mt-1 text-xs text-orange-500/80">
+                Level 1 ships, crews, and items will be burned but won't provide
+                any token rewards to prevent market abuse.
               </p>
             </div>
           )}
@@ -202,7 +204,7 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                       className="h-full w-full object-cover"
                     />
                   </div>
-                  <div className="flex h-full min-w-0 flex-1 flex-col items-start justify-between gap-1.5">
+                  <div className="flex h-full min-w-0 flex-1 flex-col items-start gap-1.5 text-left">
                     <div className="w-full truncate font-Body text-base font-medium text-white">
                       {firstAsset.name}
                     </div>
@@ -221,143 +223,173 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
           </div>
         </div>
 
-        {/* Enhanced Rewards Section */}
-        {currentRewards && (
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h4 className="flex items-center gap-2 font-Header text-base font-bold text-white">
-                <Coins className="h-4 w-4" />
-                Burn Rewards
-              </h4>
-              {totalTokenRewards > 0 && (
-                <div className="flex items-center gap-1 text-sm text-reavers-fill">
-                  <TrendingUp className="h-3 w-3" />
-                  {totalTokenRewards.toLocaleString()} total
-                </div>
-              )}
-            </div>
+        {/* Enhanced Burn Outcomes Section */}
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h4 className="flex items-center gap-2 font-Header text-base font-bold text-white">
+              <Gift className="h-4 w-4" />
+              Burn Outcomes
+            </h4>
+          </div>
 
-            {/* Detailed Reward Breakdown */}
-            <div className="space-y-3">
-              {/* Ship Tokens */}
-              {currentRewards.shipTokens > 0 && (
-                <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-                  <div className="flex items-center justify-between">
+          <div className="space-y-3">
+            {/* Captain Club NFT */}
+            {currentRewards?.captainClubNFT &&
+              currentRewards.captainClubNFT > 0 && (
+                <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
+                  <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShipIcon className="h-4 w-4 text-blue-400" />
-                      <span className="text-sm font-medium text-blue-400">
-                        Ship Tokens
-                      </span>
-                    </div>
-                    <div className="text-lg font-bold text-blue-400">
-                      {currentRewards.shipTokens.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-blue-400/80">
-                    Base: {Math.floor(currentRewards.shipTokens * 0.8)} +
-                    {hasMintedAssets ? ' Minted bonus' : ' Standard rate'}
-                  </div>
-                </div>
-              )}
-
-              {/* Crew Tokens */}
-              {currentRewards.crewTokens > 0 && (
-                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CrewIcon className="h-4 w-4 text-green-400" />
-                      <span className="text-sm font-medium text-green-400">
-                        Crew Tokens
-                      </span>
-                    </div>
-                    <div className="text-lg font-bold text-green-400">
-                      {currentRewards.crewTokens.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-green-400/80">
-                    Base: {Math.floor(currentRewards.crewTokens * 0.8)} +
-                    {hasMintedAssets ? ' Minted bonus' : ' Standard rate'}
-                  </div>
-                </div>
-              )}
-
-              {/* Item Tokens */}
-              {currentRewards.itemTokens > 0 && (
-                <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ItemsIcon className="h-4 w-4 text-purple-400" />
-                      <span className="text-sm font-medium text-purple-400">
-                        Item Tokens
+                      <Crown className="h-5 w-5 text-purple-400" />
+                      <span className="text-base font-semibold text-purple-400">
+                        Captain's Club NFT
                       </span>
                     </div>
                     <div className="text-lg font-bold text-purple-400">
-                      {currentRewards.itemTokens.toLocaleString()}
+                      {currentRewards.captainClubNFT}
                     </div>
                   </div>
-                  <div className="mt-2 text-xs text-purple-400/80">
-                    Base: {Math.floor(currentRewards.itemTokens * 0.8)} +
-                    {hasMintedAssets ? ' Minted bonus' : ' Standard rate'}
+                  <div className="text-sm leading-relaxed text-purple-400/80">
+                    You'll receive a new NFT from{' '}
+                    <strong>The Captain's Club</strong> collection with the same
+                    metadata, image, and description as your burned captain.
                   </div>
                 </div>
               )}
 
-              {/* Gold Tokens */}
-              {currentRewards.goldTokens > 0 && (
-                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
-                  <div className="flex items-center justify-between">
+            {/* Ship Tokens */}
+            {currentRewards?.shipTokens && currentRewards.shipTokens > 0 && (
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShipIcon className="h-5 w-5 text-blue-400" />
+                    <span className="text-base font-semibold text-blue-400">
+                      Ship Tokens
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold text-blue-400">
+                    {currentRewards.shipTokens.toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-sm text-blue-400/80">
+                  You receive 1 ship token per level of ship burned (excluding
+                  level 1 ships).
+                </div>
+              </div>
+            )}
+
+            {/* Mythic Tokens */}
+            {currentRewards?.mythicTokens &&
+              currentRewards.mythicTokens > 0 && (
+                <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+                  <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <GoldTokenIcon className="h-4 w-4 text-yellow-400" />
-                      <span className="text-sm font-medium text-yellow-400">
-                        Gold Tokens
+                      <Star className="h-5 w-5 text-yellow-400" />
+                      <span className="text-base font-semibold text-yellow-400">
+                        Mythic Tokens
                       </span>
                     </div>
                     <div className="text-lg font-bold text-yellow-400">
-                      {currentRewards.goldTokens.toLocaleString()}
+                      {currentRewards.mythicTokens.toLocaleString()}
                     </div>
                   </div>
-                  <div className="mt-2 text-xs text-yellow-400/80">
-                    {hasMintedAssets
-                      ? `Minted NFT bonus: ${currentRewards.goldTokens} per asset`
-                      : 'No gold bonus for non-minted assets'}
+                  <div className="text-sm text-yellow-400/80">
+                    Bonus reward for burning mythic ships - you receive 2 mythic
+                    tokens per mythic ship.
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Detailed Reward Summary */}
-            <div className="mt-4 rounded-lg border border-reavers-fill/30 bg-reavers-fill/10 p-3">
-              <div className="mb-2 text-sm font-medium text-reavers-fill">
-                Reward Calculation Summary
-              </div>
-              <div className="space-y-1 text-xs text-reavers-fill/80">
-                <div>• Total assets: {selectedAssets.length}</div>
-                <div>• Combined levels: {totalLevels}</div>
-                {mintedCount > 0 && (
-                  <div>• Minted NFTs: {mintedCount} (bonus rewards)</div>
-                )}
-                {nonMintedCount > 0 && (
-                  <div>• Non-minted: {nonMintedCount} (standard rates)</div>
-                )}
-                <div>
-                  • Token types:{' '}
-                  {[
-                    currentRewards.shipTokens > 0 ? 'Ship' : null,
-                    currentRewards.crewTokens > 0 ? 'Crew' : null,
-                    currentRewards.itemTokens > 0 ? 'Item' : null,
-                    currentRewards.goldTokens > 0 ? 'Gold' : null,
-                  ]
-                    .filter(Boolean)
-                    .join(', ')}
+            {/* Crew Tokens */}
+            {currentRewards?.crewTokens && currentRewards.crewTokens > 0 && (
+              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CrewIcon className="h-5 w-5 text-green-400" />
+                    <span className="text-base font-semibold text-green-400">
+                      Crew Tokens
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold text-green-400">
+                    {currentRewards.crewTokens.toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-sm text-green-400/80">
+                  You receive 1 crew token per level of crew burned (excluding
+                  level 1 crews).
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Item Tokens */}
+            {currentRewards?.itemTokens && currentRewards.itemTokens > 0 && (
+              <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ItemsIcon className="h-5 w-5 text-purple-400" />
+                    <span className="text-base font-semibold text-purple-400">
+                      Item Tokens
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold text-purple-400">
+                    {currentRewards.itemTokens.toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-sm text-purple-400/80">
+                  You receive 1 item token per level of item burned (excluding
+                  level 1 items).
+                </div>
+              </div>
+            )}
+
+            {/* Gold Airdrop */}
+            {currentRewards?.goldTokens && currentRewards.goldTokens > 0 && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-400" />
+                    <span className="text-base font-semibold text-amber-400">
+                      Gold Airdrop
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold text-amber-400">
+                    {currentRewards.goldTokens.toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-sm text-amber-400/80">
+                  Bonus gold reward for burning minted NFTs - you receive gold
+                  equal to the asset level × 2.
+                </div>
+              </div>
+            )}
+
+            {/* No Rewards Warning */}
+            {!currentRewards ||
+              (!currentRewards.captainClubNFT &&
+                !currentRewards.shipTokens &&
+                !currentRewards.crewTokens &&
+                !currentRewards.itemTokens &&
+                !currentRewards.goldTokens &&
+                !currentRewards.mythicTokens && (
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <InfoIcon className="h-5 w-5 text-red-400" />
+                      <span className="text-base font-semibold text-red-400">
+                        No Token Rewards
+                      </span>
+                    </div>
+                    <div className="text-sm text-red-400/80">
+                      These assets will be burned but won't provide any token
+                      rewards. This typically happens with level 1 ships, crews,
+                      and items to prevent market abuse.
+                    </div>
+                  </div>
+                ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Burn Button */}
-      <div className="border-t border-reavers-border pt-4">
+      <div className="border-t border-reavers-border pt-6">
         <motion.button
           whileHover={{ scale: canBurn ? 1.02 : 1 }}
           whileTap={{ scale: canBurn ? 0.98 : 1 }}
@@ -385,7 +417,7 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
         </motion.button>
 
         {/* Warning text */}
-        <p className="mb-10 mt-2 text-center text-xs text-white/60">
+        <p className="mb-10 mt-3 text-center text-xs text-white/60">
           This action cannot be undone. Assets will be permanently destroyed.
         </p>
       </div>

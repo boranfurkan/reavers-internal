@@ -1,4 +1,3 @@
-// components/forge/ForgeDesktopModal.tsx - Final version with all fixes
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame, Users } from 'lucide-react';
@@ -36,21 +35,20 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         className="relative z-10 mx-4 flex h-[600px] w-full max-w-6xl overflow-hidden rounded-lg border border-reavers-border bg-reavers-bg shadow-2xl lg:h-[700px]">
-        {/* Clean Header */}
-        <div className="absolute left-0 right-0 top-0 z-20 flex h-[60px] items-center justify-between border-b border-reavers-border bg-reavers-bg-secondary py-3 pl-4 pr-0 sm:h-[73px] sm:py-4 sm:pl-6">
-          <div className="flex items-center gap-3">
-            <Flame className="h-5 w-5 text-orange-500 sm:h-6 sm:w-6" />
-            <h2 className="font-Header text-lg font-bold uppercase text-white sm:text-xl">
-              The Forge
-            </h2>
-
-            {/* Simple selection indicator */}
-            {selectedAssets.length > 0 && (
-              <div className="flex items-center gap-1 rounded-md bg-reavers-fill/20 px-2 py-1 text-sm font-medium text-reavers-fill">
-                <Users className="h-3 w-3" />
-                {selectedAssets.length}
-              </div>
-            )}
+        {/* Header */}
+        <div className="absolute left-0 right-0 top-0 z-20 flex h-[70px] items-center justify-between border-b border-reavers-border bg-reavers-bg-secondary px-6 py-4 pr-0">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/20">
+              <Flame className="h-6 w-6 text-orange-500" />
+            </div>
+            <div className="text-left">
+              <h2 className="font-Header text-2xl font-bold uppercase text-white">
+                THE GRAVEYARD
+              </h2>
+              <p className="text-sm text-white/60">
+                Burn assets to receive tokens and rewards
+              </p>
+            </div>
           </div>
 
           <ModalCloseButton
@@ -61,11 +59,11 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
         </div>
 
         {/* Main Content Container */}
-        <div className="flex h-full w-full flex-col pt-[60px] sm:pt-[73px] lg:flex-row">
+        <div className="flex h-full w-full flex-col pt-[70px] lg:flex-row">
           {/* Left Panel - Asset Selection */}
           <div className="flex w-full flex-col lg:w-1/2">
-            {/* Tab Navigation */}
-            <div className="flex h-[50px] flex-shrink-0 items-center border-b border-reavers-border bg-reavers-bg-secondary px-4 py-3 sm:h-[60px]">
+            {/* Asset Type Tabs */}
+            <div className="flex h-[60px] flex-shrink-0 items-center border-b border-reavers-border bg-reavers-bg px-6 py-3">
               <ForgeTabNavigation
                 activeTab={activeTab}
                 onTabChange={onTabChange}
@@ -73,7 +71,7 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
             </div>
 
             {/* Asset List */}
-            <div className="flex-1 overflow-y-auto bg-reavers-bg p-3 sm:p-4">
+            <div className="flex-1 overflow-y-auto bg-reavers-bg p-6">
               <ForgeAssetGrid
                 assets={currentAssets}
                 selectedAssets={selectedAssets}
@@ -91,22 +89,17 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
 
           {/* Right Panel - Burn Preview */}
           <div className="hidden w-full border-l border-reavers-border bg-reavers-bg-secondary lg:block lg:w-1/2">
-            {/* Simple Preview Header */}
-            <div className="flex h-[50px] flex-shrink-0 items-center border-b border-reavers-border bg-reavers-bg-secondary px-4 py-3 sm:h-[60px]">
-              <div className="flex items-center gap-2">
-                <span className="font-Header text-base font-bold text-white">
+            {/* Preview Header */}
+            <div className="flex h-max flex-shrink-0 flex-col justify-center border-b border-reavers-border bg-reavers-bg-secondary px-6 py-4">
+              <div>
+                <h3 className="font-Header text-lg font-bold text-white">
                   Burn Preview
-                </span>
-                {selectedAssets.length > 0 && (
-                  <span className="text-sm text-white/60">
-                    {selectedAssets.length} selected
-                  </span>
-                )}
+                </h3>
               </div>
             </div>
 
             {/* Preview Content */}
-            <div className="flex h-[calc(100%_-_60px)] flex-col overflow-y-auto p-4 sm:p-6">
+            <div className="flex h-[calc(100%_-_61px)] flex-col overflow-y-auto p-6">
               <ForgeBurnPreview
                 selectedAssets={selectedAssets}
                 currentRewards={currentRewards}
@@ -118,7 +111,7 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
           </div>
         </div>
 
-        {/* Mobile Bottom Panel - Clean and Simple */}
+        {/* Mobile Bottom Panel */}
         {selectedAssets.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0 z-20 border-t border-reavers-border bg-reavers-bg-secondary p-4 lg:hidden">
             <div className="flex items-center justify-between">

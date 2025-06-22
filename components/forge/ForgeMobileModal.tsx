@@ -28,13 +28,6 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
 }) => {
   const [currentView, setCurrentView] = useState<MobileView>('assets');
 
-  // Remove automatic view switching - let user control navigation
-  // React.useEffect(() => {
-  //   if (selectedAssets.length > 0 && currentView === 'assets') {
-  //     setCurrentView('preview');
-  //   }
-  // }, [selectedAssets.length]);
-
   // Reset view when assets are deselected
   React.useEffect(() => {
     if (selectedAssets.length === 0) {
@@ -81,16 +74,25 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
                   <ChevronLeft className="h-5 w-5 text-white" />
                 </button>
               )}
-              <Flame className="h-6 w-6 text-orange-500" />
-              <h2 className="font-Header text-xl font-bold uppercase text-white">
-                {currentView === 'preview' && hasSelection
-                  ? 'Burn Preview'
-                  : 'The Forge'}
-              </h2>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/20">
+                <Flame className="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <h2 className="font-Header text-xl font-bold uppercase text-white">
+                  {currentView === 'preview' && hasSelection
+                    ? 'Burn Preview'
+                    : 'The Forge'}
+                </h2>
+                <p className="text-xs text-white/60">
+                  {currentView === 'preview' && hasSelection
+                    ? 'Review and confirm burn'
+                    : 'Burn assets for rewards'}
+                </p>
+              </div>
 
               {/* Clean mobile selection indicator */}
               {selectedAssets.length > 0 && currentView === 'assets' && (
-                <div className="flex items-center gap-1 rounded-md bg-reavers-fill/20 px-2 py-1 text-sm font-medium text-reavers-fill">
+                <div className="ml-2 flex items-center gap-1 rounded-md bg-reavers-fill/20 px-2 py-1 text-sm font-medium text-reavers-fill">
                   <Users className="h-3 w-3" />
                   {selectedAssets.length}
                 </div>
@@ -190,7 +192,7 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
   );
 };
 
-// Clean assets view for mobile - Updated with preview button
+// Clean assets view for mobile - Updated with better organization
 const MobileAssetsView: React.FC<{
   activeTab: any;
   currentAssets: ForgeAsset[];
@@ -217,9 +219,14 @@ const MobileAssetsView: React.FC<{
   <div className="space-y-6">
     {/* Asset Type Navigation */}
     <div>
-      <h3 className="mb-4 font-Header text-lg font-bold text-white">
-        Select Asset Type
-      </h3>
+      <div className="mb-4">
+        <h3 className="mb-1 font-Header text-lg font-bold text-white">
+          Select Asset Type
+        </h3>
+        <p className="text-xs text-white/60">
+          Choose the type of assets you want to burn
+        </p>
+      </div>
       <ForgeTabNavigation
         activeTab={activeTab}
         onTabChange={onTabChange}
@@ -229,16 +236,11 @@ const MobileAssetsView: React.FC<{
 
     {/* Asset Grid with integrated controls */}
     <div className={selectedAssets.length > 0 ? 'pb-20' : ''}>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-Header text-lg font-bold text-white">
-          Your {activeTab}s
-        </h3>
-        <div className="flex items-center gap-2">
-          {currentAssets.length > 0 && (
-            <span className="font-Body text-sm text-white/60">
-              {currentAssets.length} total
-            </span>
-          )}
+      <div className="mb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-Header text-lg font-bold text-white">
+            Your {activeTab}s
+          </h3>
           {selectedAssets.length > 0 && onViewPreview && (
             <button
               onClick={onViewPreview}
@@ -246,6 +248,16 @@ const MobileAssetsView: React.FC<{
               <Eye className="h-3 w-3" />
               Preview ({selectedAssets.length})
             </button>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-white/60">
+            Choose assets from your inventory to burn for rewards
+          </p>
+          {currentAssets.length > 0 && (
+            <span className="font-Body text-xs text-white/60">
+              {currentAssets.length} total
+            </span>
           )}
         </div>
       </div>
@@ -282,7 +294,7 @@ const MobilePreviewView: React.FC<{
           No Assets Selected
         </h3>
         <p className="mb-4 max-w-xs text-sm text-white/60">
-          Go back and select assets to burn.
+          Go back and select assets to burn for rewards.
         </p>
         <button
           onClick={onBack}

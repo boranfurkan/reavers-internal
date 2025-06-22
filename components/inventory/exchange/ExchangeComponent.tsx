@@ -11,6 +11,7 @@ import SkullIcon from '../../../assets/skull-icon';
 import GoldTokenIcon from '../../../assets/gold-token-icon';
 import BattleTokenIcon from '../../../assets/battle-token-icon';
 import { useUser } from '../../../contexts/UserContext';
+import TheSevenSeasIcon from '../../../assets/the-seven-seas-icon';
 
 interface ExchangeItemsContext {
   exchangeItems: {
@@ -227,9 +228,9 @@ const ExchangeComponent = () => {
               animate="visible"
               exit="hidden"
               className="flex min-h-[400px] items-center justify-center">
-              <div className="text-center">
-                <div className="mb-4 text-6xl opacity-30">🛍️</div>
-                <h3 className="mb-2 text-xl font-semibold text-white/80">
+              <div className="flex flex-col items-center justify-center gap-4 text-center">
+                <TheSevenSeasIcon width={80} height={80} />
+                <h3 className="text-xl font-semibold text-white/80">
                   No items available
                 </h3>
                 <p className="text-white/60">

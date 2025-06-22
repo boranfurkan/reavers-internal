@@ -776,3 +776,62 @@ export function getGenesisShipSpeed(rarity: GenesisShipRarity) {
       return 100;
   }
 }
+
+const getCostToLevel = (
+  type: NFTType,
+  targetLevel: number,
+  price: number,
+): number => {
+  if (targetLevel <= 0) return 0;
+
+  try {
+    return getCostForLevelUp(type, 0, targetLevel, price);
+  } catch (error) {
+    console.error(
+      `Error calculating cost to level ${targetLevel} for ${type}:`,
+      error,
+    );
+    return 0;
+  }
+};
+
+const getTotalBootyCost = (
+  type: NFTType,
+  price: number,
+  maxLevel: number,
+): number => {
+  try {
+    return getCostForLevelUp(type, 0, maxLevel, price);
+  } catch (error) {
+    console.error(`Error calculating total booty cost for ${type}:`, error);
+    return 0;
+  }
+};
+
+export const calculateTokenReward = (
+  entityLevel: number,
+  entityType: NFTType,
+  price: number,
+  maxLevel: number,
+): number => {
+  if (entityLevel <= 1)
+    throw new Error(
+      `Should be above level 1 to swap entities, current level: ${entityLevel}`,
+    );
+
+  if (entityLevel >= 27) return entityLevel;
+
+  // Step 1: Calculate total booty cost for max level range (1 to maxLevel)
+  const totalBootyCost = getTotalBootyCost(entityType, price, maxLevel);
+
+  // Step 2: Calculate average cost per level
+  const averageCostPerLevel = totalBootyCost / maxLevel;
+
+  // Step 3: Calculate the cost of the specific level (0 to entityLevel)
+  const assetCost = getCostToLevel(entityType, entityLevel, price);
+
+  // Step 4: Divide asset cost by average cost
+  const tokenReward = Math.floor(assetCost / averageCostPerLevel);
+
+  return Math.max(1, tokenReward); // Ensure minimum reward of 1 token
+};

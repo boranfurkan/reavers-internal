@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 import { Wallet } from '@dynamic-labs/sdk-react-core';
@@ -13,12 +13,13 @@ import {
   SwapEntityRequest,
 } from '../../types/forge';
 import { ItemData } from '../../lib/types';
-import { NFTType } from '../../types/BaseEntity';
-import { getLevelRarity } from '../../utils/helpers';
+import { NFTMaxLevels, NFTType } from '../../types/BaseEntity';
+import { calculateTokenReward, getLevelRarity } from '../../utils/helpers';
 import { useSwapEntities } from '../../lib/api/inventory/useSwapEntities';
 import { useBurnMintedCaptain } from './useBurnMintedCaptain';
 import { useBurnMintedEntity } from './useBurnMintedEntity';
 import { CharacterNFT, CrewNFT, ShipNFT } from '../../types/NFT';
+import { LayerContext } from '../../contexts/LayerContext';
 
 // DynamicWallet interface following project pattern
 interface DynamicWallet {
@@ -83,41 +84,87 @@ export const useForgeLogic = ({
   const { burnMintedEntity, isLoading: entityBurnLoading } =
     useBurnMintedEntity();
 
-  // Calculate rewards based on selected assets
+  const layerContext = useContext(LayerContext);
+
+  if (!layerContext) {
+    throw new Error('CaptainLevelUpModal must be used within a LayerProvider');
+  }
+
+  const { pricesData } = layerContext;
+
+  // Calculate rewards based on selected assets - Updated with new rules
   const calculateRewards = useCallback((assets: ForgeAsset[]): ForgeReward => {
     return assets.reduce(
       (total, asset) => {
-        // Base reward calculation based on level
-        const baseReward = asset.level * 10;
-        // Bonus for minted assets
-        const goldBonus = asset.minted ? asset.level * 150 : 0;
+        // IMPORTANT: No rewards for level 1 entities (except captains) to prevent abuse
+        if (asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN) {
+          return total;
+        }
 
         switch (asset.type) {
           case ForgeTabValue.CAPTAIN:
-            return total; // No tokens for captains
-          case ForgeTabValue.SHIP:
+            // Captains get a new NFT from The Captain's Club collection
             return {
               ...total,
-              shipTokens: total.shipTokens + baseReward,
-              goldTokens: total.goldTokens + goldBonus,
+              captainClubNFT: (total.captainClubNFT || 0) + 1,
+            };
+          case ForgeTabValue.SHIP:
+            const tokenRewardShip = calculateTokenReward(
+              asset.level || 1,
+              NFTType.SHIP,
+              pricesData.usdc_booty_price,
+              asset.rarity === 'MYTHIC' ? 250 : 125,
+            );
+            const shipTokens = tokenRewardShip; // 1 token per level (but level 1 filtered out above)
+            const mythicTokens = asset.rarity === 'MYTHIC' ? 2 : 0; // 2 mythic tokens for mythic ships
+            const shipGoldBonus = asset.minted ? 3000 * 1 : 0; // Gold for minted ships
+            return {
+              ...total,
+              shipTokens: total.shipTokens + shipTokens,
+              mythicTokens: (total.mythicTokens || 0) + mythicTokens,
+              goldTokens: total.goldTokens + shipGoldBonus,
             };
           case ForgeTabValue.CREW:
+            const tokenRewardCrew = calculateTokenReward(
+              asset.level || 1,
+              NFTType.CREW,
+              pricesData.usdc_booty_price,
+              NFTMaxLevels.CREW,
+            );
+            const crewTokens = tokenRewardCrew; // 1 token per level (but level 1 filtered out above)
+            const crewGoldBonus = asset.minted ? 2000 * 1 : 0; // Gold for minted crews
+
             return {
               ...total,
-              crewTokens: total.crewTokens + baseReward,
-              goldTokens: total.goldTokens + goldBonus,
+              crewTokens: total.crewTokens + crewTokens,
+              goldTokens: total.goldTokens + crewGoldBonus,
             };
           case ForgeTabValue.ITEM:
+            const tokenRewardItem = calculateTokenReward(
+              asset.level || 1,
+              NFTType.ITEM,
+              pricesData.usdc_booty_price,
+              60,
+            );
+            const itemTokens = tokenRewardItem;
+            const itemGoldBonus = asset.minted ? 1000 * 1 : 0; // Gold for minted items
             return {
               ...total,
-              itemTokens: total.itemTokens + baseReward,
-              goldTokens: total.goldTokens + goldBonus,
+              itemTokens: total.itemTokens + itemTokens,
+              goldTokens: total.goldTokens + itemGoldBonus,
             };
           default:
             return total;
         }
       },
-      { shipTokens: 0, crewTokens: 0, itemTokens: 0, goldTokens: 0 },
+      {
+        shipTokens: 0,
+        crewTokens: 0,
+        itemTokens: 0,
+        goldTokens: 0,
+        mythicTokens: 0,
+        captainClubNFT: 0,
+      },
     );
   }, []);
 
@@ -244,16 +291,15 @@ export const useForgeLogic = ({
     return selectedAssets.length > 0 ? calculateRewards(selectedAssets) : null;
   }, [selectedAssets, calculateRewards]);
 
-  // Check if multiple selection is allowed (only non-minted or only minted, not mixed)
+  // Check if multiple selection is allowed - UPDATED: NO multiple selection for minted entities
   const canSelectMultiple = useMemo(() => {
     if (selectedAssets.length === 0) return true;
 
-    // Check if all selected assets have the same minted status
-    const firstAssetMinted = selectedAssets[0].minted;
-    return selectedAssets.every((asset) => asset.minted === firstAssetMinted);
+    // NO multiple selection if any selected asset is minted
+    return selectedAssets.every((asset) => !asset.minted);
   }, [selectedAssets]);
 
-  // Handle individual asset selection with multiple selection logic
+  // Handle individual asset selection with updated logic
   const handleAssetSelect = useCallback(
     (asset: ForgeAsset) => {
       const isAlreadySelected = selectedAssets.some(
@@ -274,16 +320,13 @@ export const useForgeLogic = ({
           return;
         }
 
-        // Check if minted status matches existing selection
-        const firstAssetMinted = selectedAssets[0].minted;
-        if (asset.minted !== firstAssetMinted) {
-          toast.error(
-            'Cannot mix minted and non-minted entities in the same selection',
-          );
+        // If any current selection is minted OR new asset is minted, only single selection allowed
+        if (selectedAssets.some((a) => a.minted) || asset.minted) {
+          toast.error('Multiple selection not allowed for minted entities');
           return;
         }
 
-        // Add to selection
+        // Add to selection (only for non-minted)
         setSelectedAssets([...selectedAssets, asset]);
       }
     },
@@ -341,16 +384,6 @@ export const useForgeLogic = ({
 
     setIsLoading(true);
     try {
-      // Check if all selected assets are non-minted (burning minted assets not allowed for multiple)
-      if (
-        selectedAssets.length > 1 &&
-        selectedAssets.some((asset) => asset.minted)
-      ) {
-        toast.error('Multiple burning is only allowed for non-minted entities');
-        setIsLoading(false);
-        return;
-      }
-
       // Handle single minted asset burning
       if (selectedAssets.length === 1 && selectedAssets[0].minted) {
         const asset = selectedAssets[0];
