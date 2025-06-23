@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { LayerContext } from '../../../contexts/LayerContext';
 import { Spin } from 'antd';
 import { useNfts } from '../../../contexts/NftContext';
+import { config } from '../../../config';
 
 interface EligibleNftsProps {
   onClick: () => void;
@@ -17,7 +18,10 @@ const EligibleNfts = ({ onClick, isLoading }: EligibleNftsProps) => {
 
   const { isMobile } = layerContext;
   const nfts = useNfts();
-  const availableCount = nfts.restingNfts.length;
+
+  const availableCount = nfts.restingNfts.filter(
+    (nft) => nft.isCore === true || nft.minted === false,
+  ).length;
 
   return (
     <div

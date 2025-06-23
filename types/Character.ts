@@ -26,6 +26,8 @@ export interface Character extends BaseEntity {
   crewLevel: number;
   itemLevel: number;
   shipRarity: ShipRarity;
+
+  isCore: boolean;
 }
 
 export enum ShipRarity {

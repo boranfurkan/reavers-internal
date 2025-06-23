@@ -130,8 +130,7 @@ function AssetManagementModal() {
   const [activeSecondaryTab, setActiveSecondaryTab] =
     useState<SecondaryTabValue>(secondaryTabs[0].key);
   const [mintStatus, setMintStatus] = useState<MintStatusValue>('minted');
-  const [collectionNameFilter, setCollectionNameFilter] =
-    useState<NftFilterValue>('all');
+
   const [rarityFilter, setRarityFilter] = useState<RarityFilterValue>('ALL');
 
   const [sliderValue, setSliderValue] = useState(0);
@@ -494,11 +493,11 @@ function AssetManagementModal() {
 
     return allAssets
       .filter((asset) => asset.location === activeGameTab)
-      .filter(
-        (asset) =>
-          collectionNameFilter === 'all' ||
-          asset.collection.toLowerCase() === collectionNameFilter.toLowerCase(),
-      )
+      .filter((asset) => {
+        if (asset.type === 'CAPTAIN') {
+          return true;
+        }
+      })
       .filter((asset) => {
         if (activeGameTab === AssetLocation.IN_WALLET) {
           return true;
@@ -519,7 +518,6 @@ function AssetManagementModal() {
     combinedCrews,
     combinedShips,
     combinedGenesisShips,
-    collectionNameFilter,
     mintStatus,
     activeSecondaryTab,
     rarityFilter,
@@ -811,20 +809,7 @@ function AssetManagementModal() {
                     </div>
                   )}
 
-                  {activeSecondaryTab === 'CAPTAIN' ? (
-                    <div className="mt-3 grid w-full grid-cols-1 gap-2 p-4 md:grid-cols-2">
-                      {nftFilters.map((filterOption) => (
-                        <FilterOption
-                          key={filterOption.name}
-                          option={filterOption}
-                          isActive={collectionNameFilter === filterOption.key}
-                          onClick={() =>
-                            setCollectionNameFilter(filterOption.key)
-                          }
-                        />
-                      ))}
-                    </div>
-                  ) : (
+                  {activeSecondaryTab !== 'CAPTAIN' && (
                     <div className="flex flex-col">
                       <div className="grid w-full grid-cols-2 gap-2 border-b border-b-reavers-border border-opacity-50 p-4">
                         {rarityFilters.map((rarity) => (
@@ -846,14 +831,6 @@ function AssetManagementModal() {
         </>
       ) : activeSecondaryTab === 'CAPTAIN' ? (
         <div className="grid w-full grid-cols-1 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7">
-          {nftFilters.map((filterOption) => (
-            <FilterOption
-              key={filterOption.name}
-              option={filterOption}
-              isActive={collectionNameFilter === filterOption.key}
-              onClick={() => setCollectionNameFilter(filterOption.key)}
-            />
-          ))}
           {activeGameTab === AssetLocation.IN_GAME && (
             <MintStatusDropdown
               mintStatus={mintStatus}

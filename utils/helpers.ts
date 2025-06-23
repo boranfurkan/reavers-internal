@@ -548,37 +548,36 @@ export const decideEntitiyToBeUpgraded = (name: string) => {
 
 export const getCostForLevelUp = (
   type: NFTType,
-  goldUsdPrice: number,
   prevLevel: number,
   newLevel: number,
+  price: number,
 ) => {
-  // Special case for GENESIS_SHIP - fixed 50 BOOTY per level
   if (type === NFTType.GENESIS_SHIP) {
     const levelsToUpgrade = newLevel - prevLevel;
     return 50 * levelsToUpgrade;
   }
-
   type LevelCosts = { [key: number]: number };
+
   const typeCosts: LevelCosts =
     type === NFTType.FM || type === NFTType.QM || type === NFTType.UNIQUE
       ? LevelUpUsdCosts['CAPTAIN']
       : LevelUpUsdCosts[type];
 
   if (typeCosts) {
-    let totalBootyCost = 0;
+    let totalCost = 0;
 
     for (let level = prevLevel + 1; level <= newLevel; level++) {
-      const usdcCost = typeCosts[level];
-      if (typeof usdcCost === 'number') {
-        const bootyCost = Math.round(usdcCost * goldUsdPrice);
-        totalBootyCost += bootyCost;
+      if (typeCosts[level] !== undefined && typeCosts[level] !== null) {
+        const usdcCost = typeCosts[level];
+        const currencyCost = parseFloat((usdcCost * price).toFixed(2));
+        totalCost += currencyCost;
       } else {
         console.error(`Couldn't fetch costs for ${type} at level ${level}`);
       }
     }
-
-    return totalBootyCost;
+    return totalCost;
   } else {
+    console.error(`Couldn't fetch costs for ${type}`);
     throw new Error(`Couldn't fetch costs for ${type}`);
   }
 };

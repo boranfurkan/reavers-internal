@@ -93,80 +93,83 @@ export const useForgeLogic = ({
   const { pricesData } = layerContext;
 
   // Calculate rewards based on selected assets - Updated with new rules
-  const calculateRewards = useCallback((assets: ForgeAsset[]): ForgeReward => {
-    return assets.reduce(
-      (total, asset) => {
-        // IMPORTANT: No rewards for level 1 entities (except captains) to prevent abuse
-        if (asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN) {
-          return total;
-        }
-
-        switch (asset.type) {
-          case ForgeTabValue.CAPTAIN:
-            // Captains get a new NFT from The Captain's Club collection
-            return {
-              ...total,
-              captainClubNFT: (total.captainClubNFT || 0) + 1,
-            };
-          case ForgeTabValue.SHIP:
-            const tokenRewardShip = calculateTokenReward(
-              asset.level || 1,
-              NFTType.SHIP,
-              pricesData.usdc_booty_price,
-              asset.rarity === 'MYTHIC' ? 250 : 125,
-            );
-            const shipTokens = tokenRewardShip; // 1 token per level (but level 1 filtered out above)
-            const mythicTokens = asset.rarity === 'MYTHIC' ? 2 : 0; // 2 mythic tokens for mythic ships
-            const shipGoldBonus = asset.minted ? 3000 * 1 : 0; // Gold for minted ships
-            return {
-              ...total,
-              shipTokens: total.shipTokens + shipTokens,
-              mythicTokens: (total.mythicTokens || 0) + mythicTokens,
-              goldTokens: total.goldTokens + shipGoldBonus,
-            };
-          case ForgeTabValue.CREW:
-            const tokenRewardCrew = calculateTokenReward(
-              asset.level || 1,
-              NFTType.CREW,
-              pricesData.usdc_booty_price,
-              NFTMaxLevels.CREW,
-            );
-            const crewTokens = tokenRewardCrew; // 1 token per level (but level 1 filtered out above)
-            const crewGoldBonus = asset.minted ? 2000 * 1 : 0; // Gold for minted crews
-
-            return {
-              ...total,
-              crewTokens: total.crewTokens + crewTokens,
-              goldTokens: total.goldTokens + crewGoldBonus,
-            };
-          case ForgeTabValue.ITEM:
-            const tokenRewardItem = calculateTokenReward(
-              asset.level || 1,
-              NFTType.ITEM,
-              pricesData.usdc_booty_price,
-              60,
-            );
-            const itemTokens = tokenRewardItem;
-            const itemGoldBonus = asset.minted ? 1000 * 1 : 0; // Gold for minted items
-            return {
-              ...total,
-              itemTokens: total.itemTokens + itemTokens,
-              goldTokens: total.goldTokens + itemGoldBonus,
-            };
-          default:
+  const calculateRewards = useCallback(
+    (assets: ForgeAsset[]): ForgeReward => {
+      return assets.reduce(
+        (total, asset) => {
+          // IMPORTANT: No rewards for level 1 entities (except captains) to prevent abuse
+          if (asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN) {
             return total;
-        }
-      },
-      {
-        shipTokens: 0,
-        crewTokens: 0,
-        itemTokens: 0,
-        goldTokens: 0,
-        mythicTokens: 0,
-        captainClubNFT: 0,
-      },
-    );
-  }, []);
+          }
+
+          switch (asset.type) {
+            case ForgeTabValue.CAPTAIN:
+              // Captains get a new NFT from The Captain's Club collection
+              return {
+                ...total,
+                captainClubNFT: (total.captainClubNFT || 0) + 1,
+              };
+            case ForgeTabValue.SHIP:
+              const tokenRewardShip = calculateTokenReward(
+                asset.level || 1,
+                NFTType.SHIP,
+                pricesData.usdc_booty_price,
+                asset.rarity === 'MYTHIC' ? 250 : 125,
+              );
+              const shipTokens = tokenRewardShip;
+              const mythicTokens = asset.rarity === 'MYTHIC' ? 2 : 0; // 2 mythic tokens for mythic ships
+              const shipGoldBonus = asset.minted ? 3000 * 1 : 0; // Gold for minted ships
+              return {
+                ...total,
+                shipTokens: total.shipTokens + shipTokens,
+                mythicTokens: (total.mythicTokens || 0) + mythicTokens,
+                goldTokens: total.goldTokens + shipGoldBonus,
+              };
+            case ForgeTabValue.CREW:
+              const tokenRewardCrew = calculateTokenReward(
+                asset.level || 1,
+                NFTType.CREW,
+                pricesData.usdc_booty_price,
+                NFTMaxLevels.CREW,
+              );
+              const crewTokens = tokenRewardCrew;
+              const crewGoldBonus = asset.minted ? 2000 * 1 : 0; // Gold for minted crews
+
+              return {
+                ...total,
+                crewTokens: total.crewTokens + crewTokens,
+                goldTokens: total.goldTokens + crewGoldBonus,
+              };
+            case ForgeTabValue.ITEM:
+              const tokenRewardItem = calculateTokenReward(
+                asset.level || 1,
+                NFTType.ITEM,
+                pricesData.usdc_booty_price,
+                60,
+              );
+              const itemTokens = tokenRewardItem;
+              const itemGoldBonus = asset.minted ? 1000 * 1 : 0; // Gold for minted items
+              return {
+                ...total,
+                itemTokens: total.itemTokens + itemTokens,
+                goldTokens: total.goldTokens + itemGoldBonus,
+              };
+            default:
+              return total;
+          }
+        },
+        {
+          shipTokens: 0,
+          crewTokens: 0,
+          itemTokens: 0,
+          goldTokens: 0,
+          mythicTokens: 0,
+          captainClubNFT: 0,
+        },
+      );
+    },
+    [pricesData.usdc_booty_price],
+  );
 
   // Memoize NFT arrays
   const captainsArray = useMemo(

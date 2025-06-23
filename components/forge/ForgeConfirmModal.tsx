@@ -1,6 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlertTriangle, Flame, Users, Shield, InfoIcon } from 'lucide-react';
+import {
+  X,
+  AlertTriangle,
+  Flame,
+  Users,
+  Shield,
+  InfoIcon,
+  Crown,
+} from 'lucide-react';
 import { ForgeAsset, ForgeTabValue } from '../../types/forge';
 
 interface ForgeConfirmModalProps {
@@ -27,6 +35,12 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
   const hasNonMintedAssets = selectedAssets.some((asset) => !asset.minted);
   const hasLevel1Assets = selectedAssets.some(
     (asset) => asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN,
+  );
+  const hasMintedCaptains = selectedAssets.some(
+    (asset) => asset.minted && asset.type === ForgeTabValue.CAPTAIN,
+  );
+  const hasMintedNonCaptains = selectedAssets.some(
+    (asset) => asset.minted && asset.type !== ForgeTabValue.CAPTAIN,
   );
   const firstAsset = selectedAssets[0];
 
@@ -66,8 +80,8 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="rounded-full bg-red-500/20 p-2">
-                <AlertTriangle className="h-6 w-6 text-red-500" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
               </div>
               <div>
                 <h3 className="font-Header text-xl font-bold text-white">
@@ -80,8 +94,8 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white">
-              <X className="h-5 w-5" />
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+              <X className="h-4 w-4" />
             </button>
           </div>
 
@@ -151,10 +165,10 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
                   <img
                     src={firstAsset.imageUrl}
                     alt={firstAsset.name}
-                    className="h-12 w-12 rounded border border-white/20 object-cover"
+                    className="h-12 w-12 flex-shrink-0 rounded border border-white/20 object-cover"
                   />
-                  <div className="flex-1">
-                    <div className="font-medium text-white">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-white">
                       {firstAsset.name}
                     </div>
                     <div className="text-sm text-white/60">
@@ -176,32 +190,51 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
               {/* Level 1 Assets Warning */}
               {hasLevel1Assets && (
                 <div className="rounded-lg border border-orange-500/30 bg-orange-500/10 p-3">
-                  <div className="flex items-center gap-2">
-                    <InfoIcon className="h-4 w-4 text-orange-500" />
+                  <div className="mb-2 flex items-center gap-2">
+                    <InfoIcon className="h-4 w-4 flex-shrink-0 text-orange-500" />
                     <span className="text-sm font-medium text-orange-500">
                       Level 1 Assets Notice
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-orange-500/80">
+                  <p className="text-xs leading-relaxed text-orange-500/80">
                     Level 1 ships, crews, and items will be burned but won't
                     provide token rewards to prevent market abuse.
                   </p>
                 </div>
               )}
 
-              {/* Minted NFT warning */}
-              {hasMintedAssets && (
+              {/* Captain's Club NFT Info */}
+              {hasMintedCaptains && (
+                <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Crown className="h-4 w-4 flex-shrink-0 text-purple-500" />
+                    <span className="text-sm font-medium text-purple-500">
+                      Captain's Club NFT
+                    </span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-purple-500/80">
+                    {isMultipleSelection
+                      ? `You'll receive new NFTs from The Captain's Club collection with the same metadata, images, and descriptions as your burned captains.`
+                      : `You'll receive a new NFT from The Captain's Club collection with the same metadata, image, and description as your burned captain.`}
+                  </p>
+                </div>
+              )}
+
+              {/* Minted NFT warning for non-captains */}
+              {hasMintedNonCaptains && (
                 <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-blue-500" />
+                  <div className="mb-2 flex items-center gap-2">
+                    <Shield className="h-4 w-4 flex-shrink-0 text-blue-500" />
                     <span className="text-sm font-medium text-blue-500">
                       Minted NFT Warning
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-blue-500/80">
+                  <p className="text-xs leading-relaxed text-blue-500/80">
                     {isMultipleSelection
                       ? `${
-                          selectedAssets.filter((a) => a.minted).length
+                          selectedAssets.filter(
+                            (a) => a.minted && a.type !== ForgeTabValue.CAPTAIN,
+                          ).length
                         } of your selected assets are minted NFTs. They will be permanently destroyed.`
                       : 'This minted NFT will be permanently destroyed and cannot be recovered.'}
                   </p>
@@ -210,13 +243,13 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
 
               {/* General warning */}
               <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                <div className="flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-red-500" />
+                <div className="mb-2 flex items-center gap-2">
+                  <Flame className="h-4 w-4 flex-shrink-0 text-red-500" />
                   <span className="text-sm font-medium text-red-500">
                     Permanent Action
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-red-500/80">
+                <p className="text-xs leading-relaxed text-red-500/80">
                   {isMultipleSelection
                     ? 'All selected assets will be permanently destroyed. This action cannot be undone.'
                     : 'This asset will be permanently destroyed. This action cannot be undone.'}
@@ -229,14 +262,14 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
               <button
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 rounded-lg border border-white/20 bg-white/5 py-3 font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50">
+                className="flex flex-1 items-center justify-center rounded-lg border border-white/20 bg-white/5 py-3 font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50">
                 Cancel
               </button>
 
               <button
                 onClick={onConfirm}
                 disabled={isLoading}
-                className="flex-1 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 py-3 font-bold text-white transition-all hover:shadow-lg hover:shadow-red-500/25 disabled:cursor-not-allowed disabled:opacity-50">
+                className="flex flex-1 items-center justify-center rounded-lg bg-gradient-to-r from-red-500 to-orange-500 py-3 font-bold text-white transition-all hover:shadow-lg hover:shadow-red-500/25 disabled:cursor-not-allowed disabled:opacity-50">
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

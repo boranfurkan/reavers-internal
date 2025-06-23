@@ -379,6 +379,7 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
         config.steam_punks_collection_address,
         config.asgardians_collection_address,
         config.elementerra_collection_address,
+        config.the_captains_club_collection_address,
       ];
 
       const creatorsAddresses = [

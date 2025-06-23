@@ -16,6 +16,7 @@ type Config = {
   elementerra_collection_address: string;
   atoms_collection_address: string;
   asgardians_collection_address: string;
+  the_captains_club_collection_address: string;
   genesis_ships_collection_address: string;
   items_firebase_collection: string;
   items_collection_address: string;
@@ -77,6 +78,8 @@ if (process.env.NEXT_PUBLIC_NODE_ENV !== 'dev') {
       '7rQVtfBe78Es2PMaZP7WYRas8vkLNx31zF6mKXDSKbTv',
     genesis_ships_collection_address:
       'GNSSjxPB6QMDPVG8c9p5QGFiEJgZQ3UVsLedoqqn9Tuk',
+    the_captains_club_collection_address:
+      'CPTNUUp6GmFRNBm3mrLMYN82y11w575A9qpZnJE4xqdk',
 
     // Items
     items_firebase_collection: 'itemNftsProd',
@@ -160,6 +163,8 @@ if (process.env.NEXT_PUBLIC_NODE_ENV !== 'dev') {
       '5heGXTT4unPiFMxVAxEsTL6dZ8UJLc7qiiCYvMuuHFrT',
     asgardians_collection_address:
       '7rQVtfBe78Es2PMaZP7WYRas8vkLNx31zF6mKXDSKbTv',
+    the_captains_club_collection_address:
+      'CPTNUUp6GmFRNBm3mrLMYN82y11w575A9qpZnJE4xqdk',
     genesis_ships_collection_address:
       'GNSSjxPB6QMDPVG8c9p5QGFiEJgZQ3UVsLedoqqn9Tuk',
 

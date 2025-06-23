@@ -26,6 +26,10 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
   const layerContext = useContext(LayerContext);
   const nfts = useNfts();
 
+  const filteredCoreNfts = nfts.restingNfts.filter(
+    (nft) => nft.isCore === true || nft.minted === false,
+  );
+
   if (!layerContext) {
     throw new Error('LayerSelect must be used within a LayerProvider');
   }
@@ -62,7 +66,7 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
   );
 
   const filteredNfts = useMemo(() => {
-    return nfts.restingNfts.filter((nft) => {
+    return filteredCoreNfts.filter((nft) => {
       const mission = currentMission?.name;
       const entityToBeUpgraded = decideEntitiyToBeUpgraded(mission || '');
 
@@ -87,7 +91,7 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
 
       return currentLevel < maxPossibleLevel;
     });
-  }, [nfts.restingNfts, currentMission?.name]);
+  }, [filteredCoreNfts, currentMission?.name]);
 
   const renderCaptainMissionCards = useMemo(
     () =>
@@ -108,7 +112,7 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
         />
       )),
     [
-      nfts.restingNfts,
+      filteredCoreNfts,
       usdcGoldPrice,
       currentMission,
       selectedNfts,
@@ -170,7 +174,7 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
               {renderCaptainMissionCards}
             </div>
 
-            {(nfts.restingNfts.length || nfts.restingSpecialNfts.length) && (
+            {filteredCoreNfts.length && (
               <NftSlider
                 minTeamLength={1}
                 setSelectedNfts={setSelectedNfts}
