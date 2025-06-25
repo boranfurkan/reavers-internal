@@ -97,7 +97,7 @@ const CaptainLevelUpModal: React.FC<CaptainLevelUpModalProps> = ({
 
     // Use the same cost calculation as other entities, but for captains
     return getCostForLevelUp(
-      NFTType.QM, // Use QM as default captain type for cost calculation
+      NFTType.CAPTAIN, // Use QM as default captain type for cost calculation
       pricesData.usdc_booty_price,
       currentLevel,
       currentLevel + levelUpCount,

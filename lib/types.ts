@@ -145,7 +145,7 @@ interface CrewData {
 }
 
 // TODO:
-export const MAX_ITEM_LEVEL = 60;
+
 export interface Item {
   equipped: boolean;
   equippedTo?: string;

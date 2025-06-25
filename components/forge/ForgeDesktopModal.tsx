@@ -2,13 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame, Users } from 'lucide-react';
 import ModalCloseButton from '../HUD/modals/ModalCloseButton';
-import { ForgeModalProps } from '../../types/forge';
+import { ForgeModalProps, ForgeTabValue } from '../../types/forge';
 import { ForgeTabNavigation } from './ForgeTabNavigation';
 import { ForgeAssetGrid } from './ForgeAssetGrid';
 import { ForgeBurnPreview } from './ForgeBurnPreview';
 
 export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
-  isOpen,
   onClose,
   activeTab,
   selectedAssets,
@@ -18,7 +17,6 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
   nftsLoading,
   onTabChange,
   onAssetSelect,
-  onAssetSelectMultiple,
   onBurn,
   canSelectMultiple,
   onSelectAll,
@@ -78,7 +76,6 @@ export const ForgeDesktopModal: React.FC<ForgeModalProps> = ({
                 onAssetSelect={onAssetSelect}
                 isLoading={nftsLoading}
                 activeTab={activeTab}
-                isMobile={false}
                 gridCols="grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
                 canSelectMultiple={canSelectMultiple}
                 onSelectAll={onSelectAll}

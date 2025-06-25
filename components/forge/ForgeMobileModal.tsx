@@ -81,7 +81,7 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
                 <h2 className="font-Header text-xl font-bold uppercase text-white">
                   {currentView === 'preview' && hasSelection
                     ? 'Burn Preview'
-                    : 'The Forge'}
+                    : 'The Graveyard'}
                 </h2>
                 <p className="text-xs text-white/60">
                   {currentView === 'preview' && hasSelection
@@ -268,7 +268,6 @@ const MobileAssetsView: React.FC<{
         onAssetSelect={onAssetSelect}
         isLoading={nftsLoading}
         activeTab={activeTab}
-        isMobile={true}
         gridCols="grid-cols-2 gap-3"
         canSelectMultiple={canSelectMultiple}
         onSelectAll={onSelectAll}

@@ -19,6 +19,7 @@ import ShipIcon from '../../assets/ship-icon';
 import CrewIcon from '../../assets/crew-icon';
 import ItemsIcon from '../../assets/items-icon';
 import GoldTokenIcon from '../../assets/gold-token-icon';
+import { useUser } from '../../contexts/UserContext';
 
 interface ForgeBurnPreviewProps {
   selectedAssets: ForgeAsset[];
@@ -35,6 +36,7 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
   onBurn,
   isMobile = false,
 }) => {
+  const { user } = useUser();
   if (!selectedAssets || selectedAssets.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-center">
@@ -54,7 +56,6 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
 
   const isMultipleSelection = selectedAssets.length > 1;
   const firstAsset = selectedAssets[0];
-  const hasMintedAssets = selectedAssets.some((asset) => asset.minted);
   const hasLevel1Assets = selectedAssets.some(
     (asset) => asset.level === 1 && asset.type !== ForgeTabValue.CAPTAIN,
   );
@@ -73,8 +74,6 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
     0,
   );
   const averageLevel = Math.round(totalLevels / selectedAssets.length);
-  const mintedCount = selectedAssets.filter((a) => a.minted).length;
-  const nonMintedCount = selectedAssets.filter((a) => !a.minted).length;
 
   const getTypeIcon = (type: ForgeTabValue) => {
     switch (type) {

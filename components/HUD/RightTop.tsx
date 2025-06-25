@@ -280,7 +280,7 @@ function RightTop({ isSelectTeam }: any) {
                     <div className="-ml-[2px] h-full w-[50px] justify-center hover:bg-opacity-0">
                       <FlameIcon className="w-[16px]" />
                     </div>
-                    The Forge
+                    The Graveyard
                   </li>
 
                   {/* NFT Management */}

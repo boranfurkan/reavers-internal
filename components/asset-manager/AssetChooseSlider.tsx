@@ -70,15 +70,13 @@ const AssetChooseSlider = ({
               }
             }}
             disabled={loading}
-            className="h-[36px] whitespace-nowrap rounded-md border border-white border-opacity-[0.05] p-4 py-2 text-xs uppercase text-white"
-          >
+            className="h-[36px] whitespace-nowrap rounded-md border border-white border-opacity-[0.05] p-4 py-2 text-xs uppercase text-white">
             {sliderValue === maxSliderValue ? 'Deselect All' : 'Select All'}
           </button>
           <button
             onClick={onAction}
             className="flex h-[36px] flex-row items-center justify-center gap-2 whitespace-nowrap rounded-md bg-white p-4 py-2 text-xs uppercase text-black disabled:bg-gray-800"
-            disabled={sliderValue === 0 || loading}
-          >
+            disabled={sliderValue === 0 || loading}>
             {loading && <Spin size="small" />}
             {gameTab === 'in-game' ? 'Send to Wallet' : 'Deposit'}
           </button>

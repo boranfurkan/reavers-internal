@@ -74,6 +74,41 @@ function TreasureLeaderboard() {
 
   return (
     <div className="mt-1 h-full w-full overflow-scroll p-4">
+      {/* Important Message */}
+      <section className="container relative mx-auto mb-6 w-full ">
+        <div className="mx-auto rounded-lg border-l-4 border-yellow-500 bg-yellow-900/20 p-4 backdrop-blur-sm">
+          <div className="flex w-full items-start justify-center">
+            <div className="ml-3">
+              <div className="flex w-full items-center justify-center gap-2">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-yellow-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-medium uppercase text-yellow-300">
+                  Important Note:
+                </h4>
+              </div>
+              <div className="mt-2 text-yellow-100">
+                <p className="font-medium">
+                  ONLY minted Captains with GOLD Bars will be included in the
+                  Treasure Chest Snapshot.
+                </p>
+                <p className="mt-1 text-yellow-200">
+                  Non-minted Captains WILL not count towards your allocation.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="mb-4 w-full">
         <div className="container relative mx-auto flex h-[150px] flex-col items-center justify-center gap-2 rounded-lg bg-leaderboard-header bg-cover bg-center">
           <span className="text-Header text-[18px] uppercase">

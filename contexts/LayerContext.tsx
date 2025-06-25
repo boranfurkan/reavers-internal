@@ -105,6 +105,7 @@ interface ModalState {
   shopBuy: boolean;
   market: boolean;
   nftMovement: boolean;
+  captainsLog: boolean;
 }
 
 // Define the context type with backward compatibility for old modal state setters
@@ -169,6 +170,9 @@ interface LayerContextType {
   setMarketModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isSetNftMovementOpen: boolean;
   setNftMovementOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+  isCaptainsLogModalOpen: boolean;
+  setCaptainsLogModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
   isForgeModalOpen: boolean;
   setForgeModalOpen: (open: boolean) => void;
@@ -268,6 +272,7 @@ const initialModalState: ModalState = {
   shopBuy: false,
   market: false,
   nftMovement: false,
+  captainsLog: true,
 };
 
 // Create context with default undefined value
@@ -370,6 +375,13 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
         image: '/images/menu/menu-gamble.webp',
         disabled: false,
         hideInModal: false,
+      },
+      {
+        name: 'The Graveyard',
+        image: '/images/menu/menu-the-graveyard.png',
+        disabled: false,
+        hideInModal: true,
+        onClick: () => setForgeModalOpen(true),
       },
       {
         name: 'Fleet Command',
@@ -745,6 +757,17 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const isCaptainsLogModalOpen = modals.captainsLog;
+  const setCaptainsLogModalOpen = (
+    value: boolean | ((prevState: boolean) => boolean),
+  ) => {
+    if (typeof value === 'function') {
+      setModalState('captainsLog', value(modals.captainsLog));
+    } else {
+      setModalState('captainsLog', value);
+    }
+  };
+
   const setEquipItemsModalOpen = (
     value: boolean | ((prevState: boolean) => boolean),
   ) => {
@@ -906,6 +929,8 @@ export const LayerProvider: React.FC<{ children: React.ReactNode }> = ({
     setBottomCenterOpen,
     isLevelModalOpen: modals.level,
     setLevelModalOpen,
+    isCaptainsLogModalOpen,
+    setCaptainsLogModalOpen,
 
     isActivityFeedSiteOpen: modals.activityFeedSite,
     setIsActivityFeedSiteOpen,

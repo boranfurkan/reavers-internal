@@ -15,8 +15,6 @@ import {
   gameTabs,
   GameTabValue,
   MintStatusValue,
-  nftFilters,
-  NftFilterValue,
   rarityFilters,
   RarityFilterValue,
   secondaryTabs,
@@ -130,7 +128,6 @@ function AssetManagementModal() {
   const [activeSecondaryTab, setActiveSecondaryTab] =
     useState<SecondaryTabValue>(secondaryTabs[0].key);
   const [mintStatus, setMintStatus] = useState<MintStatusValue>('minted');
-
   const [rarityFilter, setRarityFilter] = useState<RarityFilterValue>('ALL');
 
   const [sliderValue, setSliderValue] = useState(0);
@@ -493,11 +490,6 @@ function AssetManagementModal() {
 
     return allAssets
       .filter((asset) => asset.location === activeGameTab)
-      .filter((asset) => {
-        if (asset.type === 'CAPTAIN') {
-          return true;
-        }
-      })
       .filter((asset) => {
         if (activeGameTab === AssetLocation.IN_WALLET) {
           return true;

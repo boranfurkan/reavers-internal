@@ -1,21 +1,15 @@
 import axios from 'axios';
 import { Mission } from '../contexts/LayerContext';
-import {
-  Item,
-  ItemData,
-  MAX_ITEM_LEVEL,
-  MissionStats,
-  User,
-} from '../lib/types';
+import { Item, ItemData, MissionStats, User } from '../lib/types';
 import { GenesisShipRarity } from '../types/Genesis';
 import { decryptData, encryptData } from '../stores/useAuthLocalStorage';
 import { CSSProperties } from 'react';
 import { CharacterNFT, NFT } from '../types/NFT';
 import { NFTMaxLevels, NFTType } from '../types/BaseEntity';
-import { MAX_COMMON_SHIP_LEVEL, MAX_LEGENDARY_SHIP_LEVEL } from '../types/Ship';
+
 import LevelUpDurations from '../data/levelUpDurationsInHour.json';
 import LevelUpUsdCosts from '../data/entityLevelUpUsdCosts.json';
-import { MAX_CREW_LEVEL } from '../types/Crew';
+
 import { Collection } from '../types/Collections';
 import { Token } from '../types/Token';
 import clsx, { ClassValue } from 'clsx';
@@ -38,55 +32,6 @@ export const truncatePubkey = (pubkey: string) => {
     return pubkey.slice(0, 4) + '...' + pubkey.slice(-4);
   }
   return pubkey;
-};
-
-const groupIntoPlunderTeams = (characters: CharacterNFT[]) => {
-  const teams: Array<{ nfts: CharacterNFT[]; items: ItemData[] }> = [];
-
-  characters.forEach((character) => {
-    teams.push({ nfts: [character], items: [] });
-  });
-
-  return teams;
-};
-
-export const groupIntoTeams = (
-  characters: CharacterNFT[],
-  currentMission: Mission,
-  minTeamLength: number,
-) => {
-  if (currentMission.missionStats?.kind === 'Plunders') {
-    return groupIntoPlunderTeams(characters);
-  }
-
-  let currentPartialTeam: CharacterNFT[] = [];
-
-  const teams: Array<{ nfts: CharacterNFT[]; items: ItemData[] }> = [];
-
-  characters.forEach((character) => {
-    if (
-      currentMission &&
-      !canAddToTeam(character, currentPartialTeam, currentMission)
-    ) {
-      // Reaver can't be added to current partial team
-      // Finalize and push this partial team
-      teams.push({ nfts: currentPartialTeam, items: [] });
-
-      // Start new partial team
-      currentPartialTeam = [character];
-    } else {
-      if (currentPartialTeam.length < minTeamLength) {
-        currentPartialTeam.push(character);
-      } else {
-        teams.push({ nfts: currentPartialTeam, items: [] });
-        currentPartialTeam = [character];
-      }
-    }
-  });
-
-  teams.push({ nfts: currentPartialTeam, items: [] });
-
-  return teams;
 };
 
 export const getUserBootyOrGoldAmount = (
@@ -113,81 +58,6 @@ export const getUserOnChainBootyOrGoldAmount = (
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
-};
-
-const canAddToTeam = (
-  character: CharacterNFT,
-  team: CharacterNFT[],
-  currentMission: Mission,
-  leftoverNfts?: CharacterNFT[],
-  minTeamLength?: number,
-) => {
-  const teamTypes = team.map((character) => character!.type);
-
-  let missionType: any[] = [];
-
-  if (currentMission?.missionStats?.kind === 'Plunders') {
-    return true;
-  }
-
-  // Rescue Mission
-  if (missionType.length === 0) {
-    return true;
-  }
-
-  // Count the number of 1/1 NFTs in the team
-  const oneToOneNFTCount = teamTypes.filter((type) => type === '1/1').length;
-
-  // Remove the number of 1/1 NFTs from the missionType
-  for (let i = 0; i < oneToOneNFTCount; i++) {
-    if (missionType.includes('FM')) {
-      missionType = missionType.filter((type) => type !== 'FM');
-    } else if (missionType.includes('QM')) {
-      missionType = missionType.filter((type) => type !== 'QM');
-    } else if (missionType.length > 0) {
-      missionType.pop();
-    }
-  }
-
-  const missingTypesInMission = missionType.filter(
-    (type) => !teamTypes.includes(type),
-  );
-
-  if (team.length === minTeamLength || team.length === 0) {
-    return true;
-  }
-
-  // If character is of type 1/1 and the missing types in the mission include FM or QM, return true
-  if (
-    character.type === '1/1' &&
-    (missingTypesInMission.includes('FM') ||
-      missingTypesInMission.includes('QM'))
-  ) {
-    return true;
-  }
-
-  // Can't select Crew as first one
-  if (minTeamLength === team.length || team.length === 0) {
-    return false;
-  }
-
-  // Edgecases when teams can't be filled up anymore
-  if (
-    leftoverNfts &&
-    leftoverNfts.every(
-      (character) =>
-        character.type &&
-        !missingTypesInMission.includes(character.type) &&
-        (character.type !== '1/1' ||
-          (missingTypesInMission.length === 1 &&
-            missingTypesInMission.includes('CREW'))), // Potential TODO once Crew NFTs get introduce
-    )
-  )
-    return true;
-
-  if (!missingTypesInMission.includes(character.type)) {
-    return false;
-  } else return true;
 };
 
 export function setWithExpiry<T>(
@@ -365,31 +235,34 @@ export const getLevelRarity = (
   level: number,
   isLegendaryShip?: boolean,
 ) => {
-  const ship_max_level = isLegendaryShip
-    ? MAX_LEGENDARY_SHIP_LEVEL
-    : MAX_COMMON_SHIP_LEVEL;
+  const maxShipLevel = isLegendaryShip
+    ? NFTMaxLevels.MYTHIC_SHIP
+    : NFTMaxLevels.COMMON_SHIP;
+
+  const maxItemLevel = NFTMaxLevels.ITEM;
+  const maxCrewLevel = NFTMaxLevels.CREW;
 
   switch (type) {
     case NFTType.ITEM:
-      if (level == MAX_ITEM_LEVEL) {
+      if (level == maxItemLevel) {
         return 'LEGENDARY';
-      } else if (level >= MAX_ITEM_LEVEL * 0.6) {
+      } else if (level >= maxItemLevel * 0.6) {
         return 'EPIC';
-      } else if (level >= MAX_ITEM_LEVEL * 0.4) {
+      } else if (level >= maxItemLevel * 0.4) {
         return 'RARE';
-      } else if (level >= MAX_ITEM_LEVEL * 0.2) {
+      } else if (level >= maxItemLevel * 0.2) {
         return 'UNCOMMON';
       } else {
         return 'COMMON';
       }
     case NFTType.CREW:
-      if (level == MAX_CREW_LEVEL) {
+      if (level == maxCrewLevel) {
         return 'LEGENDARY';
-      } else if (level >= MAX_CREW_LEVEL * 0.6) {
+      } else if (level >= maxCrewLevel * 0.6) {
         return 'EPIC';
-      } else if (level >= MAX_CREW_LEVEL * 0.4) {
+      } else if (level >= maxCrewLevel * 0.4) {
         return 'RARE';
-      } else if (level >= MAX_CREW_LEVEL * 0.2) {
+      } else if (level >= maxCrewLevel * 0.2) {
         return 'UNCOMMON';
       } else {
         return 'COMMON';
@@ -399,11 +272,11 @@ export const getLevelRarity = (
         return 'MYTHIC';
       } else if (level === 125) {
         return 'LEGENDARY';
-      } else if (level >= ship_max_level * 0.6) {
+      } else if (level >= maxShipLevel * 0.6) {
         return 'EPIC';
-      } else if (level >= ship_max_level * 0.4) {
+      } else if (level >= maxShipLevel * 0.4) {
         return 'RARE';
-      } else if (level >= ship_max_level * 0.2) {
+      } else if (level >= maxShipLevel * 0.2) {
         return 'UNCOMMON';
       } else {
         return 'COMMON';
@@ -559,7 +432,7 @@ export const getCostForLevelUp = (
   type LevelCosts = { [key: number]: number };
 
   const typeCosts: LevelCosts =
-    type === NFTType.FM || type === NFTType.QM || type === NFTType.UNIQUE
+    type === NFTType.CAPTAIN
       ? LevelUpUsdCosts['CAPTAIN']
       : LevelUpUsdCosts[type];
 
@@ -593,7 +466,7 @@ export const calculateEndtimeForEvents = (
   type LevelDurations = { [key: string]: number };
 
   const typeDurations = (
-    type === NFTType.FM || type === NFTType.QM || type === NFTType.UNIQUE
+    type === NFTType.CAPTAIN
       ? LevelUpDurations['CAPTAIN']
       : LevelUpDurations[type]
   ) as LevelDurations;
@@ -713,19 +586,22 @@ export const convertFirestoreDateToTimestamp = (seconds: number) => {
   });
 };
 
-export function findMaxLevelForEntity(
-  type: NFTType,
-  isLegendarySpecial?: boolean,
-): number {
+export function findMaxLevelForEntity({
+  type,
+  isCaptainOneOfOne,
+  isLegendarySpecial,
+}: {
+  type: NFTType;
+  isCaptainOneOfOne?: boolean;
+  isLegendarySpecial?: boolean;
+}): number {
   switch (type) {
     case NFTType.CREW:
       return NFTMaxLevels.CREW;
-    case NFTType.QM:
-      return NFTMaxLevels.QM;
-    case NFTType.FM:
-      return NFTMaxLevels.FM;
-    case NFTType.UNIQUE:
-      return NFTMaxLevels.UNIQUE;
+    case NFTType.CAPTAIN:
+      return isCaptainOneOfOne
+        ? NFTMaxLevels.UNIQUE_CAPTAIN
+        : NFTMaxLevels.CAPTAIN;
     case NFTType.ITEM:
       return NFTMaxLevels.ITEM;
     case NFTType.SHIP:

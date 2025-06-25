@@ -22,7 +22,6 @@ import ReaversLoader from '../components/ReaversLoader';
 import MissionModal from '../components/missions/MissionModal/MissionModal';
 import { useAuth } from '../contexts/AuthContext';
 import MissionResultModal from '../components/missions/MissionResultModal/MissionResultModal';
-import ScrollMissionModal from '../components/missions/ScrollMissionModal';
 import MarketplaceModal from '../components/missions/MarketplaceModal/MarketplaceModal';
 
 import LayerAndMissionSelectModal from '../components/HUD/LayerAndMissionSelectModal';
@@ -31,6 +30,7 @@ import { useDynamicContextWrapper } from '../hooks/UseDynamicContextWrapper';
 import Script from 'next/script';
 import IslandSelector from '../components/HUD/IslandSelector';
 import ForgeModal from '../components/forge/ForgeModal';
+import CaptainsLogModal from '../components/HUD/CaptainsLogModal';
 /* import ArenaLeaderboardModal from '../components/inventory/leaderboards/Arena/TheArenaModal'; */
 
 export const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY ?? '', {
@@ -53,6 +53,7 @@ const Home: NextPage = () => {
     isScrollMissionModalOpen,
     isMarketModalOpen,
     isLayerAndMissionSelectModalOpen,
+    isCaptainsLogModalOpen,
   } = layerContext;
 
   const { activeMissionsLoaded } = useNfts();
@@ -100,6 +101,8 @@ const Home: NextPage = () => {
         <FleetCommanderDashboardModal />
         <ForgeModal />
 
+        {activeMissionsLoaded && !auth.loading && <CaptainsLogModal />}
+
         {/*         <ArenaLeaderboardModal /> */}
 
         {/* HUD */}
@@ -123,10 +126,6 @@ const Home: NextPage = () => {
           primaryWallet.publicKey &&
           auth.isLoggedIn &&
           isHideoutModalOpen && <HideoutModal />}
-        {primaryWallet &&
-          primaryWallet.publicKey &&
-          auth.isLoggedIn &&
-          isScrollMissionModalOpen && <ScrollMissionModal />}
 
         {primaryWallet &&
           primaryWallet.publicKey &&

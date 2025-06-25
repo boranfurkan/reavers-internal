@@ -142,7 +142,11 @@ const BurnersBackSide: React.FC<BurnersBackSideProps> = ({
             </div>
 
             {/* Entity image */}
-            <GetIconForEntitiy entityType={NFTType.QM} width={60} height={60} />
+            <GetIconForEntitiy
+              entityType={NFTType.CAPTAIN}
+              width={60}
+              height={60}
+            />
           </StyledEntityCard>
 
           {/* Controls and information section */}

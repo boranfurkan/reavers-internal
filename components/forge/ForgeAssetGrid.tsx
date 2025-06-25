@@ -20,7 +20,6 @@ interface ForgeAssetGridProps {
   onAssetSelect: (asset: ForgeAsset) => void;
   isLoading: boolean;
   activeTab: ForgeTabValue;
-  isMobile?: boolean;
   gridCols?: string;
   canSelectMultiple?: boolean;
   onSelectAll?: () => void;
@@ -35,7 +34,6 @@ export const ForgeAssetGrid: React.FC<ForgeAssetGridProps> = ({
   onAssetSelect,
   isLoading,
   activeTab,
-  isMobile = false,
   gridCols = 'grid-cols-2 lg:grid-cols-3',
   canSelectMultiple = false,
   onSelectAll,

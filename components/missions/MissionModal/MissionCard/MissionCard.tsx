@@ -87,13 +87,9 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
           type: NFTType.CREW,
         };
       } else if (entityType === 'Character') {
-        // Character type check
-        const maxLevel =
-          captain.type === NFTType.FM
-            ? NFTMaxLevels.FM
-            : captain.type === NFTType.QM
-            ? NFTMaxLevels.QM
-            : NFTMaxLevels.UNIQUE;
+        const maxLevel = captain.isOneofOne
+          ? NFTMaxLevels.UNIQUE_CAPTAIN
+          : NFTMaxLevels.CAPTAIN;
 
         return {
           uid: selectedCaptainUid,

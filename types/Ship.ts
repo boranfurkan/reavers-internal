@@ -1,9 +1,6 @@
 import { BaseEntity, NFTType } from './BaseEntity';
 import { Collection } from './Collections';
 
-export const MAX_COMMON_SHIP_LEVEL = 125;
-export const MAX_LEGENDARY_SHIP_LEVEL = 250;
-
 enum ShipKind {
   PirateShip = 'Pirate Ship',
   TugBoat = 'Tug Boat',

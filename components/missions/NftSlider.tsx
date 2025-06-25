@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Modal, Slider, Spin } from 'antd';
 import { LayerContext } from '../../contexts/LayerContext';
-import { groupIntoTeams, getUserBootyOrGoldAmount } from '../../utils/helpers';
+import { getUserBootyOrGoldAmount } from '../../utils/helpers';
 import { toast } from 'sonner';
 import { config } from '../../config';
 import { useUser } from '../../contexts/UserContext';
@@ -22,14 +22,12 @@ type SelectedNftType = {
 function NftSlider({
   setSelectedNfts,
   selectedNfts,
-  minTeamLength,
   onSelect,
   nftsEligibleForMission,
 }: {
   setSelectedNfts: React.Dispatch<React.SetStateAction<SelectedNftType[]>>;
   selectedNfts: SelectedNftType[];
   nftsEligibleForMission: CharacterNFT[] | null;
-  minTeamLength: any;
   onSelect?: () => any;
   halfTime?: boolean;
 }) {
@@ -171,40 +169,23 @@ function NftSlider({
 
   // Send Handler - only for captain missions now
   const handleSend = async () => {
-    // Get all captains
-    const captains = selectedNfts.map((item) => item.captain);
-
-    // Group captains into teams
-    const groupedTeams = groupIntoTeams(
-      captains,
-      currentMission!,
-      minTeamLength,
-    );
-
     setLoading(true);
 
     try {
       const jobIds: string[] = [];
 
-      for (const group of groupedTeams) {
-        if (group.nfts.every((reaver) => !reaver)) {
-          throw new Error('No Firebase data found.');
-        }
-
+      for (const captain of selectedNfts) {
         type MissionData = {
           missionPath: string | undefined;
           nfts: (string | undefined)[];
           levelCount?: number;
         };
 
-        // Find levelUpCount for the captain (first NFT in group)
-        const levelUpCount =
-          selectedNfts.find((item) => item.captain.uid === group.nfts[0].uid)
-            ?.levelUpCount || 1;
+        const levelUpCount = captain.levelUpCount || 1;
 
         let missionData: MissionData = {
           missionPath: layerContext?.currentMission?.missionStats?.path,
-          nfts: group.nfts.map((nft) => nft.uid),
+          nfts: [captain.captain.uid],
           levelCount: levelUpCount,
         };
 

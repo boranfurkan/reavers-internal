@@ -168,7 +168,7 @@ export const copyToClipboard = (
  * @returns Percentage of maximum possible strength (0-100)
  */
 export const getStrengthPercentage = (strength: number) => {
-  const maxCharLevel = NFTMaxLevels.UNIQUE;
+  const maxCharLevel = NFTMaxLevels.UNIQUE_CAPTAIN;
   const maxCrewLevel = NFTMaxLevels.CREW;
   const maxItemLevel = NFTMaxLevels.ITEM;
   const maxShipLevel = NFTMaxLevels.MYTHIC_SHIP;

@@ -168,13 +168,9 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
 
   const getLevelPercentage = () => {
     const level = character.level || 1;
-    let maxLevel = NFTMaxLevels.QM;
-
-    if (character.type === 'FM') {
-      maxLevel = NFTMaxLevels.FM;
-    } else if (character.type === '1/1') {
-      maxLevel = NFTMaxLevels.UNIQUE;
-    }
+    let maxLevel = character.isOneofOne
+      ? NFTMaxLevels.UNIQUE_CAPTAIN
+      : NFTMaxLevels.CAPTAIN;
 
     return (level / maxLevel) * 100;
   };
@@ -204,9 +200,9 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   };
 
   const getCaptainMaxLevel = () => {
-    if (character.type === 'FM') return NFTMaxLevels.FM;
-    if (character.type === '1/1') return NFTMaxLevels.UNIQUE;
-    return NFTMaxLevels.QM;
+    return character.isOneofOne
+      ? NFTMaxLevels.UNIQUE_CAPTAIN
+      : NFTMaxLevels.CAPTAIN;
   };
 
   const getTokenCount = (entityType: 'ship' | 'crew' | 'item'): number => {
@@ -398,9 +394,22 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {/* Ship level - Updated to show button unless at level 250 */}
               <LevelDisplay
-                icon={<ShipIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                icon={
+                  <ShipIcon
+                    className={cn(
+                      'h-4 w-4 sm:h-5 sm:w-5',
+                      character.shipRarity === ShipRarity.Legendary
+                        ? 'text-yellow-400'
+                        : 'text-white',
+                    )}
+                  />
+                }
                 level={character.shipLevel || 0}
-                label="Ship"
+                label={
+                  character.shipRarity === ShipRarity.Legendary
+                    ? 'Mythic Ship'
+                    : 'Ship'
+                }
                 animationDelay={0.1}
                 onLevelUp={() => handleLevelUpClick('ship')}
                 entityType="ship"

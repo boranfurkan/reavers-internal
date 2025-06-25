@@ -1,9 +1,7 @@
 import { BaseEntity, NFTType } from './BaseEntity';
 
-export type CharacterType = NFTType.FM | NFTType.QM | NFTType.UNIQUE;
-
 export interface Character extends BaseEntity {
-  type: CharacterType;
+  type: NFTType.CAPTAIN;
   image: string;
 
   arEarned: number;
@@ -27,6 +25,7 @@ export interface Character extends BaseEntity {
   itemLevel: number;
   shipRarity: ShipRarity;
 
+  isOneofOne: boolean;
   isCore: boolean;
 }
 

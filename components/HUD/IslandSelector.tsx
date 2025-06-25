@@ -161,9 +161,8 @@ const IslandSelector: React.FC = () => {
     setIsVisible((prev) => !prev);
   };
 
-  // For desktop: Improved island selector
   const renderDesktopIslands = () => (
-    <div className="fixed bottom-20 right-4 z-50 flex w-14 flex-col gap-3 p-1">
+    <div className="fixed right-4 top-1/2 z-50 flex w-14 -translate-y-1/2 flex-col gap-3 p-1">
       {islands.map((level, index) => (
         <motion.div
           key={level?.uniqueId || `empty-${index}`}
@@ -220,7 +219,6 @@ const IslandSelector: React.FC = () => {
           )}
         </motion.div>
       ))}
-
       {/* Improved keyboard hint */}
       <motion.div
         initial={{ opacity: 0 }}

@@ -20,9 +20,7 @@ const GetIconForEntitiy = React.forwardRef<
       return <CrewIcon ref={ref} {...svgProps} />;
     case NFTType.ITEM:
       return <ItemsIcon ref={ref} {...svgProps} />;
-    case NFTType.QM:
-    case NFTType.FM:
-    case NFTType.UNIQUE:
+    case NFTType.CAPTAIN:
       return <CaptainIcon ref={ref} {...svgProps} />;
     default:
       return <div>Unknown Icon</div>;

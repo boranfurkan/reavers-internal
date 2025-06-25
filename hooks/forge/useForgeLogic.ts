@@ -173,8 +173,8 @@ export const useForgeLogic = ({
 
   // Memoize NFT arrays
   const captainsArray = useMemo(
-    () => [...(charactersInGame || []), ...(charactersNotInGame || [])],
-    [charactersInGame, charactersNotInGame],
+    () => [...(charactersInGame || [])],
+    [charactersInGame],
   );
   const shipsArray = useMemo(() => [...(shipsInGame || [])], [shipsInGame]);
   const crewsArray = useMemo(() => [...(crewsInGame || [])], [crewsInGame]);
@@ -189,7 +189,7 @@ export const useForgeLogic = ({
             if (!captainsArray || captainsArray.length === 0) return [];
             // IMPORTANT: Filter out non-minted captains completely
             return captainsArray
-              .filter((nft: CharacterNFT) => nft.minted === true) // Only show minted captains
+              .filter((nft: CharacterNFT) => nft.minted === true && !nft.isCore) // Only show minted captains
               .map((nft: CharacterNFT, index: number) => ({
                 id: nft.uid || `captain-${index}`,
                 name: nft.metadata?.name || 'Captain',
@@ -411,6 +411,7 @@ export const useForgeLogic = ({
 
         if (success) {
           // Refresh NFT data
+          mutate(`${config.worker_server_url}/rpc/onChainAssets`);
           mutate(`${config.worker_server_url}/nfts`);
           mutate(`${config.worker_server_url}/items/fetch-items`);
           mutate(`${config.worker_server_url}/users/me`);

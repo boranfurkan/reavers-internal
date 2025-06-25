@@ -73,20 +73,18 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
       // Determine the correct NFT type for max level calculation
       let nftTypeForMaxLevel: NFTType;
       if (entityToBeUpgraded === 'Character') {
-        if (nft.type === NFTType.FM) {
-          nftTypeForMaxLevel = NFTType.FM;
-        } else if (nft.type === NFTType.QM) {
-          nftTypeForMaxLevel = NFTType.QM;
-        } else {
-          nftTypeForMaxLevel = NFTType.UNIQUE;
-        }
+        nftTypeForMaxLevel = NFTType.CAPTAIN;
       } else if (entityToBeUpgraded === 'Ship') {
         nftTypeForMaxLevel = NFTType.SHIP;
       } else {
         nftTypeForMaxLevel = NFTType.CREW;
       }
 
-      const maxPossibleLevel = findMaxLevelForEntity(nftTypeForMaxLevel);
+      const maxPossibleLevel = findMaxLevelForEntity({
+        type: nftTypeForMaxLevel,
+        isCaptainOneOfOne: nft.isOneofOne,
+      });
+
       const currentLevel = nft.level || 1;
 
       return currentLevel < maxPossibleLevel;
@@ -176,10 +174,9 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
 
             {filteredCoreNfts.length && (
               <NftSlider
-                minTeamLength={1}
                 setSelectedNfts={setSelectedNfts}
                 selectedNfts={selectedNfts}
-                nftsEligibleForMission={nfts.restingNfts}
+                nftsEligibleForMission={filteredNfts}
                 onSelect={onClose}
               />
             )}

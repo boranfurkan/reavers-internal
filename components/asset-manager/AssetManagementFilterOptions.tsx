@@ -99,76 +99,6 @@ export const secondaryTabs = [
   },
 ] as const;
 
-export const nftFilters = [
-  { key: 'all', name: 'All', icon: null },
-  {
-    key: Collection.STEAM_PUNKS,
-    name: 'Steam Punks',
-    icon: (
-      <TheSevenSeasIcon
-        width={24}
-        height={24}
-        className="inline-block h-6 max-h-6 w-6 max-w-6"
-      />
-    ),
-  },
-  {
-    key: Collection.ASGARDIANS,
-    name: 'The Asgardians',
-    icon: (
-      <TheSevenSeasIcon
-        width={24}
-        height={24}
-        className="inline-block h-6 max-h-6 w-6 max-w-6"
-      />
-    ),
-  },
-  {
-    key: Collection.SEVEN_SEAS,
-    name: 'Sirens',
-    icon: (
-      <TheSevenSeasIcon
-        width={24}
-        height={24}
-        className="inline-block h-6 max-h-6 w-6 max-w-6"
-      />
-    ),
-  },
-  {
-    key: Collection.REAVERS,
-    name: 'Reavers',
-    icon: (
-      <ReaversIcon
-        width={24}
-        height={24}
-        className="inline-block h-6 max-h-6 w-6 max-w-6"
-      />
-    ),
-  },
-  {
-    key: Collection.LAST_HAVEN,
-    name: 'Last Haven',
-    icon: (
-      <LastHavenIcon
-        width={24}
-        height={24}
-        className="inline-block h-6 max-h-6 w-6 max-w-6"
-      />
-    ),
-  },
-  {
-    key: Collection.DRAGON_SOLS,
-    name: 'Dragon Sols',
-    icon: (
-      <AtomsIcon
-        width={24}
-        height={24}
-        className="inline-block h-6 max-h-6 w-6 max-w-6"
-      />
-    ),
-  },
-] as const;
-
 export const rarityFilters = [
   { key: 'ALL', name: 'All', rarity: null },
   { key: 'COMMON', name: 'Common', rarity: 'COMMON' },
@@ -185,6 +115,5 @@ export const mintStatusOptions = [
 
 export type GameTabValue = (typeof gameTabs)[number]['key'];
 export type SecondaryTabValue = (typeof secondaryTabs)[number]['key'];
-export type NftFilterValue = (typeof nftFilters)[number]['key'];
 export type RarityFilterValue = (typeof rarityFilters)[number]['key'];
 export type MintStatusValue = (typeof mintStatusOptions)[number]['value'];

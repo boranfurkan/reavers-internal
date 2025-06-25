@@ -15,8 +15,6 @@ function CombinedCountdownTimer({ mission, className = '' }: TimerProps) {
   const [hasEnded, setHasEnded] = useState(false);
   const layerContext = useContext(LayerContext);
 
-  console.log('mission', mission);
-
   if (!layerContext) {
     throw new Error('LayerSelect must be used within a LayerProvider');
   }

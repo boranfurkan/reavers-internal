@@ -55,11 +55,7 @@ const EventsBackSide = ({
 
   const getColor = useCallback(
     (opacity: number) => {
-      if (
-        entityToBeUpgraded.type === NFTType.QM ||
-        entityToBeUpgraded.type === NFTType.FM ||
-        entityToBeUpgraded.type === NFTType.UNIQUE
-      ) {
+      if (entityToBeUpgraded.type === NFTType.CAPTAIN) {
         // Convert opacity to hex
         const alphaHex = Math.round((opacity / 100) * 255)
           .toString(16)
@@ -116,11 +112,7 @@ const EventsBackSide = ({
         <StyledEntityCard
           className="flex min-h-[70px] items-center justify-center !rounded-b-none"
           rarity={rarityLevel}
-          isCaptain={
-            entityToBeUpgraded.type === NFTType.FM ||
-            entityToBeUpgraded.type === NFTType.QM ||
-            entityToBeUpgraded.type === NFTType.UNIQUE
-          }>
+          isCaptain={entityToBeUpgraded.type === NFTType.CAPTAIN}>
           {(entityToBeUpgraded.type === NFTType.CREW ||
             entityToBeUpgraded.type === NFTType.SHIP ||
             entityToBeUpgraded.type === NFTType.ITEM) && (
@@ -162,9 +154,7 @@ const EventsBackSide = ({
 
           <div className="flex h-full w-full flex-col justify-between p-1 text-center">
             <p className="text-sm font-semibold uppercase">
-              {entityToBeUpgraded.type === NFTType.QM ||
-              entityToBeUpgraded.type === NFTType.FM ||
-              entityToBeUpgraded.type === NFTType.UNIQUE
+              {entityToBeUpgraded.type === NFTType.CAPTAIN
                 ? 'Captain'
                 : entityToBeUpgraded.type}
             </p>
@@ -196,9 +186,7 @@ const EventsBackSide = ({
                   </h5>
                   <span className="text-xs font-semibold text-gray-400">
                     This{' '}
-                    {entityToBeUpgraded.type === NFTType.QM ||
-                    entityToBeUpgraded.type === NFTType.FM ||
-                    entityToBeUpgraded.type === NFTType.UNIQUE
+                    {entityToBeUpgraded.type === NFTType.CAPTAIN
                       ? 'Captain'
                       : entityToBeUpgraded.type.toLowerCase()}{' '}
                     cannot be upgraded further
