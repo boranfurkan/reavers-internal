@@ -8,6 +8,7 @@ import { LayerContext } from '../../../contexts/LayerContext';
 import { formatPercentage } from '../../../utils/helpers';
 import { CharacterNFT } from '../../../types/NFT';
 import { Button } from '../../../components/ui/button';
+import GoldBarIcon from '../../../assets/gold-bar-icon';
 
 // Animation variants
 const animations = {
@@ -365,7 +366,8 @@ const InventoryStatistics: React.FC = () => {
           <div style={styles.divider} />
           <StatRow
             label="Gold Burned"
-            value={`${stats.totalGoldBurned.toFixed(1)}K`}
+            value={`${stats.totalGoldBurned.toFixed(0)}`}
+            icon={<GoldBarIcon className="h-4 w-4" width={16} height={16} />}
             highlight={true}
           />
         </SummaryCard>

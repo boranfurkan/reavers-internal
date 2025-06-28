@@ -210,6 +210,50 @@ const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({
         return <SkullIcon {...iconProps} />;
       case 'battleTokens':
         return <BattleTokenIcon {...iconProps} />;
+      case 'shipLevelToken':
+        return (
+          <Image
+            src="/images/ship-level-up-token.webp"
+            alt="Ship Level Token"
+            width={size}
+            height={size}
+            className="h-5 w-5"
+            unoptimized={true}
+          />
+        );
+      case 'crewLevelToken':
+        return (
+          <Image
+            src="/images/crew-level-up-token.webp"
+            alt="Crew Level Token"
+            width={size}
+            height={size}
+            className="h-5 w-5"
+            unoptimized={true}
+          />
+        );
+      case 'itemLevelToken':
+        return (
+          <Image
+            src="/images/item-level-up-token.webp"
+            alt="Item Level Token"
+            width={size}
+            height={size}
+            className="h-5 w-5"
+            unoptimized={true}
+          />
+        );
+      case 'captainLevelToken':
+        return (
+          <Image
+            src="/images/captain-level-up-token.webp"
+            alt="Captain Level Token"
+            width={size}
+            height={size}
+            className="h-5 w-5"
+            unoptimized={true}
+          />
+        );
       default:
         return <SkullIcon {...iconProps} />;
     }

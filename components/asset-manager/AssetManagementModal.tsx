@@ -639,6 +639,46 @@ function AssetManagementModal() {
             ? 'thaw'
             : 'freeze';
 
+        // Add restriction check for unstaking (thaw) action
+        if (actionType === 'thaw') {
+          const restrictedAssets = assets.filter(
+            (asset) =>
+              asset.type === NFTType.CREW ||
+              asset.type === NFTType.SHIP ||
+              asset.type === NFTType.ITEM,
+          );
+
+          if (restrictedAssets.length > 0) {
+            const assetTypeNames = restrictedAssets.map((asset) => {
+              switch (asset.type) {
+                case NFTType.CREW:
+                  return 'Crew';
+                case NFTType.SHIP:
+                  return 'Ship';
+                case NFTType.ITEM:
+                  return 'Item';
+                default:
+                  return asset.type;
+              }
+            });
+
+            const uniqueTypes = Array.from(new Set(assetTypeNames));
+            const typeList =
+              uniqueTypes.length > 1
+                ? uniqueTypes.slice(0, -1).join(', ') +
+                  ' and ' +
+                  uniqueTypes.slice(-1)
+                : uniqueTypes[0];
+
+            toast.error(
+              `Unstaking is currently disabled for ${typeList}${
+                uniqueTypes.length > 1 ? 's' : ''
+              }. Only Captains and Genesis Ships can be unstaked.`,
+            );
+            return;
+          }
+        }
+
         setLoading(true);
 
         // Show processing toast
@@ -710,7 +750,6 @@ function AssetManagementModal() {
       sliderValue,
     ],
   );
-
   return (
     <motion.div
       className="fixed inset-0 z-[90] flex w-full flex-col items-start justify-start overflow-y-scroll bg-black bg-opacity-[0.8] pt-0 text-white backdrop-blur-xl"

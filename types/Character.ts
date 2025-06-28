@@ -1,6 +1,7 @@
 import { BaseEntity, NFTType } from './BaseEntity';
 
 export interface Character extends BaseEntity {
+  collection: string;
   type: NFTType.CAPTAIN;
   image: string;
 

@@ -57,7 +57,14 @@ export const ForgeMobileModal: React.FC<ForgeModalProps> = ({
   const hasSelection = selectedAssets.length > 0;
 
   return (
-    <Sheet isOpen={isOpen} onClose={onClose} snapPoints={[0.9]} initialSnap={0}>
+    <Sheet
+      isOpen={isOpen}
+      onClose={onClose}
+      snapPoints={[0.9]}
+      initialSnap={0}
+      style={{
+        zIndex: 1000, // Ensure it appears above other content
+      }}>
       <Sheet.Backdrop
         className="bg-black/60 backdrop-blur-sm"
         onTap={onClose}

@@ -39,6 +39,8 @@ interface MissionCardProps {
   unSelect: (reaver: CharacterNFT) => void;
   payMethod?: string;
   currentGoldPrice: number;
+  bootyCostMultiplier?: number;
+  durationMultiplier?: number;
 }
 
 const MissionCard: React.FC<MissionCardProps> = React.memo(
@@ -52,6 +54,8 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
     handleLevelUpCountChange,
     unSelect,
     currentGoldPrice,
+    bootyCostMultiplier = 1,
+    durationMultiplier = 1,
   }) => {
     const [flipped, setFlipped] = useState(isSelected);
 
@@ -252,6 +256,8 @@ const MissionCard: React.FC<MissionCardProps> = React.memo(
                   currentGoldPrice={currentGoldPrice}
                   entityToBeUpgraded={entityToBeUpgraded}
                   handleLevelUpCountChange={handleLevelUpCountChange}
+                  durationMultiplier={durationMultiplier}
+                  bootyCostMultiplier={bootyCostMultiplier}
                 />
               ) : (
                 <div className="flex flex-col gap-2">

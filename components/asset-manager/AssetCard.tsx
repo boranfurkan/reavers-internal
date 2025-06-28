@@ -41,6 +41,12 @@ export interface AssetCardProps {
 const ActionButton: React.FC<{
   id: string;
   location: AssetLocation;
+  type:
+    | 'CAPTAIN'
+    | NFTType.SHIP
+    | NFTType.ITEM
+    | NFTType.CREW
+    | NFTType.GENESIS_SHIP;
   isActionLimited: boolean;
   loading?: boolean;
   handleAction?: (id: string) => any;
@@ -49,14 +55,33 @@ const ActionButton: React.FC<{
 }> = ({
   id,
   location,
+  type,
   isActionLimited,
   loading,
   handleAction,
   isMobile,
   className,
 }) => {
+  const isUnstakeDisabled =
+    location === AssetLocation.IN_GAME &&
+    (type === NFTType.CREW || type === NFTType.SHIP || type === NFTType.ITEM);
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+
+    if (isUnstakeDisabled) {
+      const assetTypeName =
+        type === NFTType.CREW
+          ? 'Crew'
+          : type === NFTType.SHIP
+          ? 'Ship'
+          : 'Item';
+      toast.error(
+        `Unstaking is currently disabled for ${assetTypeName}s. Only Captains and Genesis Ships can be unstaked.`,
+      );
+      return;
+    }
+
     if (!handleAction) {
       toast.error(
         'An error occurred. Please try again later and contact support if the issue persists.',
@@ -66,19 +91,24 @@ const ActionButton: React.FC<{
     handleAction(id);
   };
 
+  const isButtonDisabled =
+    isActionLimited || (isMobile && loading) || isUnstakeDisabled;
+
   return (
     <button
       onClick={handleClick}
       className={`${
         isMobile ? 'w-full' : ''
       } rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-        !isActionLimited
+        !isButtonDisabled
           ? 'bg-[#6535c9] text-white hover:bg-[#4a239a] hover:text-white'
           : 'cursor-not-allowed bg-gray-700 text-gray-400'
       } ${className}`}
-      disabled={isActionLimited || (isMobile && loading)}>
+      disabled={isButtonDisabled}>
       {isActionLimited
         ? 'Action Limited'
+        : isUnstakeDisabled
+        ? 'Unstake Disabled'
         : location === AssetLocation.IN_GAME
         ? 'UNSTAKE'
         : 'STAKE'}
@@ -164,11 +194,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
       } ${isActionLimited && 'cursor-not-allowed'} ${
         type === 'CAPTAIN' ? 'h-[210px]' : 'h-[192px]'
       } `}
-      onClick={() => {
-        if (!isActionLimited) {
-          handleSelect(id);
-        }
-      }}>
+      onClick={!isActionLimited ? () => handleSelect(id) : undefined}>
       {mint && (
         <button
           onClick={handleCopyMintAddress}
@@ -227,6 +253,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
           <ActionButton
             id={id}
             location={location}
+            type={type}
             isActionLimited={isActionLimited}
             loading={loading}
             handleAction={handleAction}
@@ -240,6 +267,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
         <ActionButton
           id={id}
           location={location}
+          type={type}
           isActionLimited={isActionLimited}
           loading={loading}
           handleAction={handleAction}

@@ -10,7 +10,7 @@ The Scaffolhas Material-UI v5 theme activated, detecting your devices preferred 
 
 We didn't wantto include too much as from our experience we tend to delete most stuff we found in a scaffol
 
-You can find a preview below:
+You can find a preview belo
 
 |                    Responsive                    |                      Desktop                       |
 | :----------------------------------------------: | :------------------------------------------------: |

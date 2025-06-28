@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -579,6 +579,7 @@ const CaptainsLogModal: React.FC = () => {
     src: string;
     alt: string;
   } | null>(null);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   if (!layerContext) {
     throw new Error('CaptainsLogModal must be used within a LayerProvider');
@@ -588,9 +589,23 @@ const CaptainsLogModal: React.FC = () => {
 
   const totalPages = 5;
 
+  // Check localStorage on component mount
+  useEffect(() => {
+    const shouldHideModal = localStorage.getItem('captainsLog_dontShowAgain');
+    if (shouldHideModal === 'true' && isCaptainsLogModalOpen) {
+      setCaptainsLogModalOpen(false);
+    }
+  }, [isCaptainsLogModalOpen, setCaptainsLogModalOpen]);
+
   const handleClose = () => {
+    // Save preference to localStorage if checkbox is checked
+    if (dontShowAgain) {
+      localStorage.setItem('captainsLog_dontShowAgain', 'true');
+    }
+
     setCaptainsLogModalOpen(false);
     setCurrentPage(0); // Reset to first page when modal closes
+    setDontShowAgain(false); // Reset checkbox state
   };
 
   const handleNext = () => {
@@ -686,42 +701,52 @@ const CaptainsLogModal: React.FC = () => {
             </div>
 
             {/* Navigation Footer */}
-            <div className="flex items-center justify-between border-t border-white border-opacity-10 bg-black bg-opacity-40 px-4 py-3 md:px-6 md:py-4">
-              <button
-                onClick={handlePrevious}
-                disabled={currentPage === 0}
-                className={`inline-flex items-center gap-1.5 rounded-lg border border-white border-opacity-20 px-3 py-1.5 text-sm font-medium transition-all md:gap-2 md:px-4 md:py-2 md:text-base ${
-                  currentPage === 0
-                    ? 'cursor-not-allowed text-white text-opacity-45 opacity-50'
-                    : 'bg-black bg-opacity-40 text-white hover:bg-opacity-60'
-                }`}>
-                <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
-                Previous
-              </button>
+            <div className="border-t border-white border-opacity-10 bg-black bg-opacity-40 px-4 py-3 md:px-6 md:py-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handlePrevious}
+                  disabled={currentPage === 0}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border border-white border-opacity-20 px-3 py-1.5 text-sm font-medium transition-all md:gap-2 md:px-4 md:py-2 md:text-base ${
+                    currentPage === 0
+                      ? 'cursor-not-allowed text-white text-opacity-45 opacity-50'
+                      : 'bg-black bg-opacity-40 text-white hover:bg-opacity-60'
+                  }`}>
+                  <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
+                  Previous
+                </button>
 
-              <div className="text-center max-md:hidden">
-                <span className="text-xs text-white text-opacity-45 md:text-sm">
-                  {currentPage === totalPages - 1
-                    ? 'Ready to sail!'
-                    : 'Navigate through the updates'}
-                </span>
+                {/* Don't show again checkbox */}
+                <div className=" flex items-center justify-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="dontShowAgain"
+                    checked={dontShowAgain}
+                    onChange={(e) => setDontShowAgain(e.target.checked)}
+                    className="h-4 w-4 rounded border-white border-opacity-20 bg-black bg-opacity-40 text-yellow-400 focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50"
+                  />
+                  <label
+                    htmlFor="dontShowAgain"
+                    className="cursor-pointer text-sm text-white text-opacity-70 hover:text-opacity-90 md:text-base">
+                    Don't show this again
+                  </label>
+                </div>
+
+                {currentPage === totalPages - 1 ? (
+                  <button
+                    onClick={handleClose}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-1.5 text-sm font-bold text-black transition-all hover:bg-yellow-300 md:gap-2 md:px-6 md:py-2 md:text-base">
+                    <Scroll className="h-3 w-3 md:h-4 md:w-4" />
+                    <span className="max-md:hidden">Acknowledge & </span>Close
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleNext}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-white border-opacity-20 bg-white bg-opacity-10 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-opacity-20 md:gap-2 md:px-4 md:py-2 md:text-base">
+                    Next
+                    <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
+                  </button>
+                )}
               </div>
-
-              {currentPage === totalPages - 1 ? (
-                <button
-                  onClick={handleClose}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-1.5 text-sm font-bold text-black transition-all hover:bg-yellow-300 md:gap-2 md:px-6 md:py-2 md:text-base">
-                  <Scroll className="h-3 w-3 md:h-4 md:w-4" />
-                  <span className="max-md:hidden">Acknowledge & </span>Close
-                </button>
-              ) : (
-                <button
-                  onClick={handleNext}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-white border-opacity-20 bg-white bg-opacity-10 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-opacity-20 md:gap-2 md:px-4 md:py-2 md:text-base">
-                  Next
-                  <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
-                </button>
-              )}
             </div>
           </motion.div>
         </div>

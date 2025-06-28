@@ -337,39 +337,44 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       // Process characters
-      let characters = firebaseNfts.characters.map((character) => {
-        const matchingEntry = onChainNfts.characters.find(
-          (onChainCharacter) => character.mint === onChainCharacter.id,
-        );
-
-        if (matchingEntry) {
-          filteredOnChainCharacters = filteredOnChainCharacters.filter(
-            (char) => char.id !== matchingEntry.id,
+      let characters = firebaseNfts.characters
+        .map((character) => {
+          const matchingEntry = onChainNfts.characters.find(
+            (onChainCharacter) => character.mint === onChainCharacter.id,
           );
-        }
 
-        const activeMission = state.activeMissions.find(
-          (mission) =>
-            mission.nftIds.includes(character.uid) && !mission.stakedSpecial,
+          if (matchingEntry) {
+            filteredOnChainCharacters = filteredOnChainCharacters.filter(
+              (char) => char.id !== matchingEntry.id,
+            );
+          }
+
+          const activeMission = state.activeMissions.find(
+            (mission) =>
+              mission.nftIds.includes(character.uid) && !mission.stakedSpecial,
+          );
+
+          // Calculate strength and add it to the character
+          const strength = calculateCharacterStrength(character);
+
+          return {
+            ...character,
+            ...matchingEntry,
+            currentMissionLoaded: activeMission,
+            levelUpSuccessRate: 100,
+            strength: strength,
+            staked: {
+              startTime: character.staked?.startTime || null,
+              staked: character.staked?.staked || false,
+              stakedLevel: character.staked?.stakedLevel || 1,
+              currentMission: character.staked?.currentMission || null,
+            },
+          } as CharacterNFT;
+        })
+        .filter(
+          (nft) =>
+            nft.metadata?.symbol !== 'BRO' && nft.metadata?.symbol !== 'ELE',
         );
-
-        // Calculate strength and add it to the character
-        const strength = calculateCharacterStrength(character);
-
-        return {
-          ...character,
-          ...matchingEntry,
-          currentMissionLoaded: activeMission,
-          levelUpSuccessRate: 100,
-          strength: strength,
-          staked: {
-            startTime: character.staked?.startTime || null,
-            staked: character.staked?.staked || false,
-            stakedLevel: character.staked?.stakedLevel || 1,
-            currentMission: character.staked?.currentMission || null,
-          },
-        } as CharacterNFT;
-      });
 
       // Add on-chain only characters
       const groupingAddresses = [
@@ -416,13 +421,21 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
 
       characters = characters.concat(enhancedOnChainCharacters);
 
-      const charactersInGame = characters.filter(
-        (character) => character.isDeposited === true,
-      );
+      const charactersInGame = characters
+        .filter((character) => character.isDeposited === true)
+        .filter(
+          (nft) =>
+            nft.metadata?.symbol !== 'BRO' && nft.metadata?.symbol !== 'ELE',
+        );
 
-      const charactersNotInGame = characters.filter(
-        (character) => !charactersInGame.some((c) => c.id === character.id),
-      );
+      const charactersNotInGame = characters
+        .filter(
+          (character) => !charactersInGame.some((c) => c.id === character.id),
+        )
+        .filter(
+          (nft) =>
+            nft.metadata?.symbol !== 'BRO' && nft.metadata?.symbol !== 'ELE',
+        );
 
       const restingNfts = characters.filter(
         (character) => character && character.currentMission === '',

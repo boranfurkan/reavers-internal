@@ -61,6 +61,7 @@ export interface User {
   shipLevelToken: number;
   crewLevelToken: number;
   itemLevelToken: number;
+  captainLevelToken: number;
 }
 
 interface BaseLeaderboardTreasureResponse {
@@ -211,6 +212,8 @@ export interface MissionStats {
     _seconds: number;
   };
   totalActiveMissions?: number;
+  bootyCostMultiplier?: number;
+  durationMultiplier?: number;
 }
 
 export interface ActiveMission {
@@ -274,7 +277,14 @@ export interface ExchangeItem {
   active: boolean;
   costType: 'gemsAmount' | 'treasureAmount' | 'arAmount';
   costAmount: number;
-  yieldType: 'arAmount' | 'goldAmount' | 'battleTokens';
+  yieldType:
+    | 'goldAmount'
+    | 'arAmount'
+    | 'battleTokens'
+    | 'shipLevelToken'
+    | 'crewLevelToken'
+    | 'itemLevelToken'
+    | 'captainLevelToken';
   yieldAmount: number;
 }
 

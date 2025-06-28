@@ -118,7 +118,7 @@ export const getAssetCardPropsFromNFT = ({
     const metadata: any = nft.metadata || nft.content?.metadata;
 
     let imageUrl = '';
-    let level = 1;
+    let level;
     let isActionLimited = false;
     let goldBurned = 0;
 
@@ -130,16 +130,15 @@ export const getAssetCardPropsFromNFT = ({
     }
 
     if (type !== NFTType.GENESIS_SHIP) {
-      if ((nft as any).level) {
-        level = (nft as any).level;
-      } else if (nft.content?.metadata?.attributes) {
-        const metadataLevel = nft.content.metadata.attributes.find(
-          (attribute: { trait_type: string; value: string }) =>
-            attribute.trait_type === 'Level',
+      if (
+        metadata?.attributes?.find((attr: any) => attr.trait_type === 'Level')
+          ?.value
+      ) {
+        level = metadata?.attributes?.find(
+          (attr: any) => attr.trait_type === 'Level',
         )?.value;
-        if (metadataLevel) {
-          level = parseInt(metadataLevel);
-        }
+      } else {
+        level = (nft as any).level;
       }
     }
 

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -26,7 +27,23 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
   onClose,
   onConfirm,
 }) => {
+  // Portal target - use document.body for maximum z-index priority
+  const modalRoot = typeof window !== 'undefined' ? document.body : null;
+
+  useEffect(() => {
+    if (isOpen && modalRoot) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [isOpen, modalRoot]);
+
   if (!isOpen || !selectedAssets || selectedAssets.length === 0) {
+    return null;
+  }
+
+  if (!modalRoot) {
     return null;
   }
 
@@ -58,9 +75,9 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
     0,
   );
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -184,7 +201,6 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
                 </div>
               )}
             </div>
-
             {/* Warnings */}
             <div className="space-y-3">
               {/* Level 1 Assets Warning */}
@@ -256,7 +272,6 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
                 </p>
               </div>
             </div>
-
             {/* Action Buttons */}
             <div className="flex gap-3">
               <button
@@ -284,10 +299,11 @@ export const ForgeConfirmModal: React.FC<ForgeConfirmModalProps> = ({
                   </div>
                 )}
               </button>
-            </div>
+            </div>{' '}
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    modalRoot,
   );
 };

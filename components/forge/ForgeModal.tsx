@@ -39,7 +39,6 @@ const ForgeModal: React.FC = React.memo(() => {
     handleTabChange,
     handleBurn,
     handleConfirmBurn,
-    calculateRewards,
     canSelectMultiple,
     handleSelectAll,
     handleClearSelection,

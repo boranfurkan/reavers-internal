@@ -389,33 +389,24 @@ export const getIslandIconImage = (islandNumber: number) => {
 export const decideEntitiyToBeUpgraded = (name: string) => {
   switch (name) {
     case "Captain's Academy":
-    case 'War Hall':
-    case 'The Laboratory':
-    case 'Mission Control':
-    case 'The Gilded Press':
     case 'Dragons Roost':
       return 'Character';
 
     case 'Shipwright and Co':
-    case "Skald's Shipyard":
-    case 'The Aetherdock':
-    case 'The Salvage Wharf':
     case 'Scaleport':
       return 'Ship';
 
     case 'The Blacksmith':
-    case 'The Iron Armory':
-    case 'The Gearsmiths Forge':
-    case 'Wasteland Outfitters':
     case 'Fangvault':
       return 'Item';
 
     case 'The Docks':
-    case 'The Mead Hall':
-    case 'The Steamworks Union':
-    case 'Survivors Hold':
     case 'The Hatchery':
       return 'Crew';
+
+    default:
+      console.warn(`Unknown mission name: ${name}`);
+      return null;
   }
 };
 
@@ -448,6 +439,10 @@ export const getCostForLevelUp = (
         console.error(`Couldn't fetch costs for ${type} at level ${level}`);
       }
     }
+    console.log(
+      `Total cost for leveling up ${type} from level ${prevLevel} to ${newLevel}: $${totalCost}`,
+    );
+
     return totalCost;
   } else {
     console.error(`Couldn't fetch costs for ${type}`);
@@ -503,68 +498,6 @@ export function formatHoursToHMS(hours: number): string {
 
   return `${hDisplay} ${mDisplay} ${sDisplay}`;
 }
-
-export const BootyCostMultiplier: {
-  [missionName: string]: number;
-} = {
-  //Island 1
-  "Captain's Academy": 0,
-  'Shipwright and Co': 0,
-  'The Blacksmith': 0,
-  'The Docks': 0,
-  //Island 2
-  "Skald's Shipyard": 0.2,
-  'The Iron Armory': 0.2,
-  'The Mead Hall': 0.2,
-  'War Hall': 0.2,
-  //Island 3
-  'The Laboratory': 0.3,
-  'The Aetherdock': 0.3,
-  'The Steamworks Union': 0.3,
-  'The Gearsmiths Forge': 0.3,
-  //  Island 4
-  'Mission Control': 0.3,
-  'The Salvage Wharf': 0.3,
-  'Wasteland Outfitters': 0.3,
-  'Survivors Hold': 0.3,
-  //Island 5
-  'Dragons Roost': 0.5,
-  Fangvault: 0.5,
-  Scaleport: 0.5,
-  'The Hatchery': 0.5,
-};
-
-export const DurationMultiplier: {
-  [missionName: string]: number;
-} = {
-  //Island 1
-  "Captain's Academy": 1,
-  'Shipwright and Co': 1,
-  'The Blacksmith': 1,
-  'The Docks': 1,
-  //Island 2
-  "Skald's Shipyard": 0.8,
-  'The Iron Armory': 0.8,
-  'The Mead Hall': 0.8,
-  'War Hall': 0.8,
-  //Island 3
-  'The Laboratory': 0.7,
-  'The Aetherdock': 0.7,
-  'The Steamworks Union': 0.7,
-  'The Gearsmiths Forge': 0.7,
-
-  //  Island 4
-  'Mission Control': 0.6,
-  'The Salvage Wharf': 0.6,
-  'Wasteland Outfitters': 0.6,
-  'Survivors Hold': 0.6,
-
-  //Island 5
-  'Dragons Roost': 0.3,
-  Fangvault: 0.3,
-  Scaleport: 0.3,
-  'The Hatchery': 0.3,
-};
 
 export const adjustColor = (color: string, opacity: number): string => {
   const hex = color.replace('#', '');

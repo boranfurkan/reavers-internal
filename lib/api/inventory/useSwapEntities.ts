@@ -93,6 +93,7 @@ export const useSwapEntities = () => {
         }
 
         // Refresh data
+        mutate(`${config.worker_server_url}/rpc/onChainAssets`);
         mutate(`${config.worker_server_url}/users/me`);
         mutate(`${config.worker_server_url}/nfts`);
         mutate(`${config.worker_server_url}/items/fetch-items`);
@@ -103,6 +104,7 @@ export const useSwapEntities = () => {
         // Handle timeout for long-running jobs
         const timeoutId = setTimeout(() => {
           // Force refresh after timeout
+          mutate(`${config.worker_server_url}/rpc/onChainAssets`);
           mutate(`${config.worker_server_url}/users/me`);
           mutate(`${config.worker_server_url}/nfts`);
           mutate(`${config.worker_server_url}/items/fetch-items`);

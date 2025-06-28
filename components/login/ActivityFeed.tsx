@@ -46,17 +46,18 @@ function ActivityFeed() {
             return (
               <div key={index} className="relative z-20 tracking-tight">
                 <div className="absolute -right-1 top-4 z-[99] flex w-full items-center justify-end">
-                  {item.outcome.type === 'success' ||
+                  {!item.outcome?.type ||
+                  item.outcome.type === 'success' ||
                   (item.gemsReward && item.gemsReward > 0) ? (
                     <div
                       className={`${
-                        item.outcome.multiplier && item.outcome.multiplier >= 5
+                        item.outcome?.multiplier && item.outcome.multiplier >= 5
                           ? 'fiveMultiply'
                           : 'bg-activity-success'
                       } rounded-sm p-[1px] pb-0.5 pt-1 text-[10px]`}>
                       <span className="h-3.5 px-1.5 uppercase text-white">
                         Success{' '}
-                        {item.outcome.multiplier && item.outcome.multiplier > 1
+                        {item.outcome?.multiplier && item.outcome.multiplier > 1
                           ? `${item.outcome.multiplier}x`
                           : ''}
                       </span>

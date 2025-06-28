@@ -5,9 +5,7 @@ import Image from 'next/image';
 import { StyledEntityCard } from './MissionCard';
 import RarityBadge from '../../../inventory/RarityBadge';
 import {
-  BootyCostMultiplier,
   calculateEndtimeForEvents,
-  DurationMultiplier,
   formatHoursToHMS,
   getCostForLevelUp,
   getLevelRarity,
@@ -30,6 +28,8 @@ interface EventsBackSideProps {
     type: NFTType;
   };
   handleLevelUpCountChange: (uid: string, levelUpCount: number) => void;
+  durationMultiplier?: number;
+  bootyCostMultiplier?: number;
 }
 
 const EventsBackSide = ({
@@ -37,6 +37,8 @@ const EventsBackSide = ({
   currentGoldPrice,
   entityToBeUpgraded,
   handleLevelUpCountChange,
+  durationMultiplier = 1,
+  bootyCostMultiplier = 1,
 }: EventsBackSideProps) => {
   const [amount, setAmount] = useState(entityToBeUpgraded.levelUpCount);
 
@@ -201,12 +203,12 @@ const EventsBackSide = ({
                     <span className="text-xs font-semibold text-gray-300">
                       <span className="inline-block min-w-[4ch] text-right">
                         {(
-                          BootyCostMultiplier[missionName] *
+                          bootyCostMultiplier *
                           getCostForLevelUp(
                             entityToBeUpgraded.type,
-                            currentGoldPrice,
                             entityToBeUpgraded.level,
                             entityToBeUpgraded.level + amount,
+                            currentGoldPrice,
                           )
                         ).toFixed(2)}
                       </span>{' '}
@@ -219,7 +221,7 @@ const EventsBackSide = ({
                     </h5>
                     <span className="text-xs font-semibold text-gray-300">
                       {formatHoursToHMS(
-                        DurationMultiplier[missionName] *
+                        durationMultiplier *
                           calculateEndtimeForEvents(
                             entityToBeUpgraded.type,
                             entityToBeUpgraded.level,

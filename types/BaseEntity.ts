@@ -22,6 +22,11 @@ export interface BaseMetadata {
   name: string;
   image: string;
   description: string;
+  symbol: string;
+  attributes?: Array<{
+    trait_type: string;
+    value: string | number;
+  }>;
 }
 
 type UplevelingHistory = Array<{

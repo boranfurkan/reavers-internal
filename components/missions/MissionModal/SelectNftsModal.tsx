@@ -70,6 +70,10 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
       const mission = currentMission?.name;
       const entityToBeUpgraded = decideEntitiyToBeUpgraded(mission || '');
 
+      if (!entityToBeUpgraded) {
+        return true;
+      }
+
       // Determine the correct NFT type for max level calculation
       let nftTypeForMaxLevel: NFTType;
       if (entityToBeUpgraded === 'Character') {
@@ -107,6 +111,10 @@ const SelectNftsModal = ({ onClose, usdcGoldPrice }: SelectNftsModalProps) => {
           handleClick={handleSelectCaptain}
           payMethod={currentMission?.missionStats?.currency?.toString()}
           currentGoldPrice={usdcGoldPrice}
+          bootyCostMultiplier={
+            currentMission?.missionStats?.bootyCostMultiplier
+          }
+          durationMultiplier={currentMission?.missionStats?.durationMultiplier}
         />
       )),
     [

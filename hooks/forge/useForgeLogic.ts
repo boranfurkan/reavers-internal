@@ -68,14 +68,8 @@ export const useForgeLogic = ({
   setIsConfirmModalOpen,
   setIsLoading,
 }: UseForgeLogicProps) => {
-  const {
-    charactersInGame,
-    charactersNotInGame,
-    shipsInGame,
-    crewsInGame,
-    itemsInGame,
-    loading,
-  } = nftContext;
+  const { charactersInGame, shipsInGame, crewsInGame, itemsInGame, loading } =
+    nftContext;
 
   const { primaryWallet } = useDynamicContext();
   const { swapEntitiesWithTokens } = useSwapEntities();
@@ -173,9 +167,14 @@ export const useForgeLogic = ({
 
   // Memoize NFT arrays
   const captainsArray = useMemo(
-    () => [...(charactersInGame || [])],
+    () =>
+      [...(charactersInGame || [])].filter(
+        (nft) =>
+          nft.metadata?.symbol !== 'BRO' && nft.metadata?.symbol !== 'ELE',
+      ),
     [charactersInGame],
   );
+
   const shipsArray = useMemo(() => [...(shipsInGame || [])], [shipsInGame]);
   const crewsArray = useMemo(() => [...(crewsInGame || [])], [crewsInGame]);
   const itemsArray = useMemo(() => [...(itemsInGame || [])], [itemsInGame]);
@@ -410,12 +409,6 @@ export const useForgeLogic = ({
         }
 
         if (success) {
-          // Refresh NFT data
-          mutate(`${config.worker_server_url}/rpc/onChainAssets`);
-          mutate(`${config.worker_server_url}/nfts`);
-          mutate(`${config.worker_server_url}/items/fetch-items`);
-          mutate(`${config.worker_server_url}/users/me`);
-
           setSelectedAssets([]);
           setIsConfirmModalOpen(false);
         }
@@ -436,6 +429,10 @@ export const useForgeLogic = ({
       console.error('Error burning assets:', error);
       toast.error('Failed to burn assets. Please try again.');
     } finally {
+      mutate(`${config.worker_server_url}/rpc/onChainAssets`);
+      mutate(`${config.worker_server_url}/nfts`);
+      mutate(`${config.worker_server_url}/items/fetch-items`);
+      mutate(`${config.worker_server_url}/users/me`);
       setIsLoading(false);
     }
   }, [

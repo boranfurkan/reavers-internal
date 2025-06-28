@@ -136,6 +136,7 @@ type ReaverCardProps = {
 };
 
 const ReaverCard = ({ character }: ReaverCardProps) => {
+  console.log('ReaverCard rendered for:', character);
   const layerContext = useContext(LayerContext);
   const { user } = useUser();
 
@@ -413,8 +414,8 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
                 animationDelay={0.1}
                 onLevelUp={() => handleLevelUpClick('ship')}
                 entityType="ship"
-                hasTokens={getTokenCount('ship') > 0}
-                isMaxLevel={isAtAbsoluteMaxLevel('ship')} // Changed logic
+                hasTokens={true}
+                isMaxLevel={isAtAbsoluteMaxLevel('ship')}
               />
 
               <LevelDisplay

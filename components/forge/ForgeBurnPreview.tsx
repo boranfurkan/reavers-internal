@@ -50,6 +50,9 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
             ? 'assets to see burn rewards and proceed.'
             : 'assets from the left panel to see burn rewards and proceed with the operation.'}
         </p>
+        <span className="mt-2 text-xs text-red-500/70">
+          Minted Assets can ONLY be burned one at a time
+        </span>
       </div>
     );
   }
@@ -270,8 +273,9 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                   </div>
                 </div>
                 <div className="text-sm text-blue-400/80">
-                  You receive 1 ship token per level of ship burned (excluding
-                  level 1 ships).
+                  You receive ship tokens based on the average cost per level.
+                  This may result in lesser levels for lower level ships to
+                  prevent system manipulation (excluding level 1 ships)
                 </div>
               </div>
             )}
@@ -313,8 +317,9 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                   </div>
                 </div>
                 <div className="text-sm text-green-400/80">
-                  You receive 1 crew token per level of crew burned (excluding
-                  level 1 crews).
+                  You receive crew tokens based on the average cost per level.
+                  This may result in lesser levels for lower level crews to
+                  prevent system manipulation (excluding level 1 crews)
                 </div>
               </div>
             )}
@@ -334,8 +339,9 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                   </div>
                 </div>
                 <div className="text-sm text-purple-400/80">
-                  You receive 1 item token per level of item burned (excluding
-                  level 1 items).
+                  You receive item tokens based on the average cost per level.
+                  This may result in lesser levels for lower level items to
+                  prevent system manipulation (excluding level 1 items)
                 </div>
               </div>
             )}
@@ -355,8 +361,8 @@ export const ForgeBurnPreview: React.FC<ForgeBurnPreviewProps> = ({
                   </div>
                 </div>
                 <div className="text-sm text-amber-400/80">
-                  Bonus gold reward for burning minted NFTs - you receive gold
-                  equal to the asset level × 2.
+                  Bonus Gold Airdrop for burning a Minted Asset during this
+                  Process (Excluding Captains)
                 </div>
               </div>
             )}

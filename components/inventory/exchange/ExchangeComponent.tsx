@@ -42,6 +42,20 @@ const TabOptions = [
     key: 'BATTLE_TOKEN',
     icon: <BattleTokenIcon width={20} height={20} />,
   },
+  {
+    name: 'LEVEL TOKENS',
+    key: 'LEVEL_TOKENS',
+    icon: (
+      <Image
+        src="/images/general-level-up-icon.webp"
+        alt="Level Tokens"
+        width={20}
+        height={20}
+        className="h-5 w-5"
+        unoptimized={true}
+      />
+    ),
+  },
 ];
 
 // Animation variants
@@ -109,6 +123,13 @@ const ExchangeComponent = () => {
       ),
       BATTLE_TOKEN: exchangeItems.exchangeItems.filter(
         (item) => item.yieldType === 'battleTokens',
+      ),
+      LEVEL_TOKENS: exchangeItems.exchangeItems.filter(
+        (item) =>
+          item.yieldType === 'shipLevelToken' ||
+          item.yieldType === 'crewLevelToken' ||
+          item.yieldType === 'itemLevelToken' ||
+          item.yieldType === 'captainLevelToken',
       ),
     };
   }, [exchangeItems]);
@@ -213,7 +234,13 @@ const ExchangeComponent = () => {
                     <ExchangeItemCard
                       item={item}
                       variant={
-                        item.yieldType === 'battleTokens' ? 'slider' : 'button'
+                        item.yieldType === 'battleTokens' ||
+                        item.yieldType === 'shipLevelToken' ||
+                        item.yieldType === 'crewLevelToken' ||
+                        item.yieldType === 'itemLevelToken' ||
+                        item.yieldType === 'captainLevelToken'
+                          ? 'slider'
+                          : 'button'
                       }
                       maxValue={Math.floor(user?.arAmount || 0)}
                     />

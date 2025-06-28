@@ -208,6 +208,15 @@ const ActiveMissionElement = React.memo(function ActiveMissionElement({
               <div className="absolute left-0 top-0 rounded-tl-md bg-[#000000bb] p-2">
                 {levelPart(reaver)}
               </div>
+              {/* Displaying the Level, Base and Type Information */}
+              <p
+                className={`absolute bottom-0 left-0 rounded-bl-md p-2 py-0.5 text-xs ${
+                  reaver.minted
+                    ? 'bg-green-400 text-black'
+                    : 'bg-red-400 text-black'
+                }`}>
+                {reaver.minted ? 'Minted' : 'Not Minted'}
+              </p>
             </div>
 
             <div className="grid h-full w-full grid-cols-2 gap-3">
@@ -219,7 +228,6 @@ const ActiveMissionElement = React.memo(function ActiveMissionElement({
             </div>
           </div>
 
-          {/* Displaying the Level, Base and Type Information */}
           <div className="flex w-full flex-row items-start justify-between gap-2 text-start">
             <GoldBarDisplay goldBurned={reaver.goldBurned} />
             <div className="flex flex-row items-center justify-start gap-4 text-start">
