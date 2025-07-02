@@ -1,6 +1,4 @@
-import { GenesisShipRarity } from '../types/Genesis';
-import { NFTMaxLevels } from '../types/BaseEntity';
-import { CharacterNFT } from '../types/NFT';
+import { NFTMaxLevels, NFTType } from '../types/BaseEntity';
 
 // Color mapping constants for reusability and consistency
 export const RARITY_COLORS = {
@@ -73,7 +71,7 @@ export const STRENGTH_COLORS = {
 /**
  * Animation variants for card elements - optimized and standardized
  */
-export const animations = {
+const animations = {
   // Container animations with staggered children
   containerVariants: {
     hidden: { opacity: 0 },
@@ -217,65 +215,68 @@ export const getStrengthBorderColor = (
   return { borderColor: STRENGTH_COLORS.COMMON.border };
 };
 
-/**
- * Get gradient background style for rarity display
- * @param rarity Rarity string (e.g., "MYTHIC", "LEGENDARY")
- * @returns CSS properties for gradient background
- */
-export const getRarityGradient = (rarity: string): React.CSSProperties => {
-  const rarityKey = rarity.toUpperCase() as keyof typeof RARITY_COLORS;
-  return {
-    background:
-      RARITY_COLORS[rarityKey]?.gradient || RARITY_COLORS.COMMON.gradient,
-  };
+export const ITEM_LEVEL_UP_COST_GOLD = 1800;
+export const CREW_LEVEL_UP_COST_GOLD = 1800;
+export const SHIP_LEVEL_UP_COST_GOLD = 3000;
+export const CAPTAIN_LEVEL_UP_COST_GOLD = 3000;
+
+export const ITEM_LEVEL_UP_DURATION = 12;
+export const CREW_LEVEL_UP_DURATION = 12;
+export const SHIP_LEVEL_UP_DURATION = 24;
+export const CAPTAIN_LEVEL_UP_DURATION = 24;
+
+export enum GOLD_LEVEL_UP_COST {
+  ITEM = ITEM_LEVEL_UP_COST_GOLD,
+  CREW = CREW_LEVEL_UP_COST_GOLD,
+  SHIP = SHIP_LEVEL_UP_COST_GOLD,
+  CAPTAIN = CAPTAIN_LEVEL_UP_COST_GOLD,
+}
+
+export enum LEVEL_UP_DURATION {
+  ITEM = ITEM_LEVEL_UP_DURATION,
+  CREW = CREW_LEVEL_UP_DURATION,
+  SHIP = SHIP_LEVEL_UP_DURATION,
+  CAPTAIN = CAPTAIN_LEVEL_UP_DURATION,
+}
+
+export const getGoldCostForLevelUpNewVersion = (
+  type: NFTType,
+  prevLevel: number,
+  newLevel: number,
+) => {
+  const typeCost: number =
+    GOLD_LEVEL_UP_COST[type as keyof typeof GOLD_LEVEL_UP_COST];
+
+  if (typeCost !== undefined && typeCost !== null) {
+    let totalGoldCost = 0;
+
+    for (let level = prevLevel + 1; level <= newLevel; level++) {
+      totalGoldCost += typeCost;
+    }
+
+    return totalGoldCost;
+  } else {
+    throw new Error(`Couldn't fetch costs for ${type}`);
+  }
 };
 
-/**
- * Get border color style for rarity display
- * @param rarity Rarity string (e.g., "MYTHIC", "LEGENDARY")
- * @returns CSS properties for border color
- */
-export const getRarityBorderColor = (rarity: string): React.CSSProperties => {
-  const rarityKey = rarity.toUpperCase() as keyof typeof RARITY_COLORS;
-  return {
-    borderColor:
-      RARITY_COLORS[rarityKey]?.border || RARITY_COLORS.COMMON.border,
-  };
-};
+export const calculateEndtimeForEventsNewVersion = (
+  type: NFTType,
+  prevLevel: number,
+  newLevel: number,
+) => {
+  const typeDuration: number =
+    LEVEL_UP_DURATION[type as keyof typeof LEVEL_UP_DURATION];
 
-/**
- * Get Genesis ship rarity styling
- * @param rarity Genesis ship rarity
- * @returns CSS properties for background and border
- */
-export const getGenesisRarityStyle = (
-  rarity: GenesisShipRarity,
-): React.CSSProperties => {
-  switch (rarity) {
-    case GenesisShipRarity.FLEET_COMMANDER:
-      return {
-        background: 'linear-gradient(to bottom, #4c1d95, #6b21a8)', // purple-950 to purple-800
-        borderColor: '#a855f7', // purple-500
-      };
-    case GenesisShipRarity.GOLD:
-      return {
-        background: 'linear-gradient(to bottom, #713f12, #a16207)', // yellow-900 to yellow-700
-        borderColor: '#eab308', // yellow-500
-      };
-    case GenesisShipRarity.SILVER:
-      return {
-        background: 'linear-gradient(to bottom, #374151, #4b5563)', // gray-700 to gray-600
-        borderColor: '#9ca3af', // gray-400
-      };
-    case GenesisShipRarity.BRONZE:
-      return {
-        background: 'linear-gradient(to bottom, #7c2d12, #92400e)', // amber-900 to amber-800
-        borderColor: '#d97706', // amber-600
-      };
-    default:
-      return {
-        background: 'linear-gradient(to bottom, #111827, #1f2937)', // gray-900 to gray-800
-        borderColor: '#6b7280', // gray-500
-      };
+  if (typeDuration) {
+    let totalHours = 0;
+
+    for (let level = prevLevel + 1; level <= newLevel; level++) {
+      totalHours += typeDuration;
+    }
+
+    return totalHours;
+  } else {
+    throw new Error(`Couldn't fetch durations for ${type}`);
   }
 };

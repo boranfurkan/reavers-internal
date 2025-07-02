@@ -8,7 +8,7 @@ import { NFTType } from '../../types/BaseEntity';
 import { getStrengthPercentage } from '../../utils/inventory-helpers';
 
 // Define types for filters
-export type StandardRarityFilter =
+type StandardRarityFilter =
   | 'ALL'
   | 'COMMON'
   | 'UNCOMMON'
@@ -16,7 +16,7 @@ export type StandardRarityFilter =
   | 'EPIC'
   | 'LEGENDARY'
   | 'MYTHIC';
-export type GenesisRarityFilter =
+type GenesisRarityFilter =
   | 'ALL'
   | 'FLEET_COMMANDER'
   | 'GOLD'
@@ -41,8 +41,8 @@ export type SortOption =
   | 'item-level-desc'
   | 'item-level-asc';
 
-export type EquippedFilter = 'all' | 'equipped' | 'not-equipped';
-export type MissionFilter = 'all' | 'on-mission' | 'not-on-mission';
+type EquippedFilter = 'all' | 'equipped' | 'not-equipped';
+type MissionFilter = 'all' | 'on-mission' | 'not-on-mission';
 
 export interface FilterState {
   rarity: RarityFilter;

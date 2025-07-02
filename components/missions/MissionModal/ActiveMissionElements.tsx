@@ -7,6 +7,7 @@ import Image from 'next/image';
 import {
   getLevelRarity,
   getRarityColorWithOpacity,
+  checkIfIslandOneLevellingLocation,
 } from '../../../utils/helpers';
 import RarityBadge from '../../inventory/RarityBadge';
 import StrengthDisplay from '../StrengthDisplay';
@@ -15,6 +16,7 @@ import { NFTType } from '../../../types/BaseEntity';
 import GoldBarDisplay from '../GoldBarDisplay';
 import CombinedCountdownTimer from '../../HUD/CountdownTimer';
 import GetIconForEntitiy from '../../GetIconForEntitiy';
+import BattleTokenSwitcher from '../../inventory/inventory/reavers/BattleTokenSwitcher';
 
 const NftCard = styled.div<{
   selected: boolean;
@@ -242,6 +244,19 @@ const ActiveMissionElement = React.memo(function ActiveMissionElement({
           <div className="w-full">
             <CombinedCountdownTimer mission={mission} />
           </div>
+          {/* Battle Token Switcher for Island 1 Leveling Missions */}
+          {mission.missionName &&
+            checkIfIslandOneLevellingLocation(mission.missionName) && (
+              <div className="mt-2 w-full">
+                <BattleTokenSwitcher
+                  isEnabled={false}
+                  onToggle={(enabled) => {
+                    console.log('Battle token enabled:', enabled);
+                    // TODO: Implement battle token logic
+                  }}
+                />
+              </div>
+            )}
         </NftCard>
       )}
     </div>

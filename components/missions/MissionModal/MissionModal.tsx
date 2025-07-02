@@ -190,7 +190,7 @@ const MissionModal: React.FC = () => {
                       />
                       {filteredActiveMissions.length == 0 && (
                         <span
-                          className={`flex h-[100px] items-center justify-center font-Header text-3xl uppercase leading-6`}>
+                          className={`col-span-2 flex h-[100px] items-center justify-center font-Header text-3xl uppercase leading-6`}>
                           No active missions found
                         </span>
                       )}

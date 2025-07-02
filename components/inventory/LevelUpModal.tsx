@@ -20,7 +20,7 @@ import { config } from '../../config';
 interface LevelUpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  entityType: 'ship' | 'crew' | 'item';
+  entityType: 'ship' | 'crew' | 'item' | 'captain';
   currentLevel: number;
   maxLevel: number;
   availableTokens: number;
@@ -93,7 +93,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
 
   // Map entityType to UpgradeType
   const getUpgradeType = (
-    entityType: 'ship' | 'crew' | 'item',
+    entityType: 'ship' | 'crew' | 'item' | 'captain',
   ): UpgradeType => {
     switch (entityType) {
       case 'ship':
@@ -102,6 +102,8 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
         return UpgradeType.CREW;
       case 'item':
         return UpgradeType.ITEM;
+      case 'captain':
+        return UpgradeType.CHARACTER;
       default:
         return UpgradeType.SHIP;
     }
@@ -264,6 +266,22 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({
           border: 'border-purple-400/30',
           button:
             'from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
+        };
+      case 'captain':
+        return {
+          color: 'text-orange-400',
+          bg: 'from-orange-500/20 to-red-500/20',
+          border: 'border-orange-400/30',
+          button:
+            'from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600',
+        };
+      default:
+        return {
+          color: 'text-gray-400',
+          bg: 'from-gray-500/20 to-gray-500/20',
+          border: 'border-gray-400/30',
+          button:
+            'from-gray-500 to-gray-500 hover:from-gray-600 hover:to-gray-600',
         };
     }
   }, [entityType]);

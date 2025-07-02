@@ -33,7 +33,8 @@ import { GenesisShip, GenesisShipRarity } from '../../types/Genesis';
 
 const FleetCommanderDashboardModal: React.FC = () => {
   const layerContext = useContext(LayerContext);
-  const { genesisShips = [], refreshGenesisShips } = useNfts();
+  const { genesisShipsInGame = [], refreshGenesisShips } = useNfts();
+  console.log(genesisShipsInGame);
 
   // Use useRef to track modal visibility state without causing re-renders
   const isLoadingRef = useRef(false);
@@ -68,24 +69,27 @@ const FleetCommanderDashboardModal: React.FC = () => {
 
   // Calculate summary statistics - safely handling empty arrays
   const totalReward = useMemo(() => {
-    if (!genesisShips || genesisShips.length === 0) return 0;
-    return genesisShips.reduce((sum, ship) => sum + (ship.reward || 0), 0);
-  }, [genesisShips]);
+    if (!genesisShipsInGame || genesisShipsInGame.length === 0) return 0;
+    return genesisShipsInGame.reduce(
+      (sum, ship) => sum + (ship.reward || 0),
+      0,
+    );
+  }, [genesisShipsInGame]);
 
   const averageTierBonus = useMemo(() => {
-    if (!genesisShips || genesisShips.length === 0) return 0;
-    const total = genesisShips.reduce(
+    if (!genesisShipsInGame || genesisShipsInGame.length === 0) return 0;
+    const total = genesisShipsInGame.reduce(
       (sum, ship) => sum + (ship.tierBonus || 0),
       0,
     );
-    return total / genesisShips.length;
-  }, [genesisShips]);
+    return total / genesisShipsInGame.length;
+  }, [genesisShipsInGame]);
 
   const shipsByRarity = useMemo(() => {
-    if (!genesisShips || genesisShips.length === 0)
+    if (!genesisShipsInGame || genesisShipsInGame.length === 0)
       return {} as Record<GenesisShipRarity, number>;
 
-    return genesisShips.reduce((acc, ship) => {
+    return genesisShipsInGame.reduce((acc, ship) => {
       if (ship.rarity) {
         acc[ship.rarity] = (acc[ship.rarity] || 0) + 1;
       } else {
@@ -93,14 +97,14 @@ const FleetCommanderDashboardModal: React.FC = () => {
       }
       return acc;
     }, {} as Record<GenesisShipRarity, number>);
-  }, [genesisShips]);
+  }, [genesisShipsInGame]);
 
   // Calculate ships with licenses
   const shipsWithLicenses = useMemo(() => {
-    if (!genesisShips || genesisShips.length === 0)
+    if (!genesisShipsInGame || genesisShipsInGame.length === 0)
       return { license1: 0, license2: 0, license3: 0, triple: 0 };
 
-    return genesisShips.reduce(
+    return genesisShipsInGame.reduce(
       (acc, ship) => {
         if (ship.captainLicense1) acc.license1++;
         if (ship.captainLicense2) acc.license2++;
@@ -115,20 +119,20 @@ const FleetCommanderDashboardModal: React.FC = () => {
       },
       { license1: 0, license2: 0, license3: 0, triple: 0 },
     );
-  }, [genesisShips]);
+  }, [genesisShipsInGame]);
 
   // Determine mission-eligible ships
   const missionEligibleShips = useMemo(() => {
-    if (!genesisShips || genesisShips.length === 0) return [];
+    if (!genesisShipsInGame || genesisShipsInGame.length === 0) return [];
     // Filter ships that are not currently on a mission
-    return genesisShips.filter((ship) => !ship.isOnMission);
-  }, [genesisShips]);
+    return genesisShipsInGame.filter((ship) => !ship.isOnMission);
+  }, [genesisShipsInGame]);
 
   const rewardStats = useMemo(() => {
-    if (!genesisShips || genesisShips.length === 0)
+    if (!genesisShipsInGame || genesisShipsInGame.length === 0)
       return { claimableShips: 0, allTimeRewardClaimed: 0, allTimeTaxPaid: 0 };
 
-    return genesisShips.reduce(
+    return genesisShipsInGame.reduce(
       (acc, ship) => {
         if (ship.isClaimable) acc.claimableShips++;
         acc.allTimeRewardClaimed += ship.allTimeRewardClaimed || 0;
@@ -141,7 +145,7 @@ const FleetCommanderDashboardModal: React.FC = () => {
         allTimeTaxPaid: number;
       },
     );
-  }, [genesisShips]);
+  }, [genesisShipsInGame]);
 
   // Use a useEffect to synchronize refs to state
   // This allows us to update the visual state without re-rendering the entire component
@@ -151,7 +155,6 @@ const FleetCommanderDashboardModal: React.FC = () => {
     setIsSendAllLoading(isSendAllLoadingRef.current); // Sync the send all loading ref to state
   }, []);
 
-  // Modified refreshData function to avoid complete re-renders
   const refreshData = useCallback(async () => {
     try {
       await refreshGenesisShips();
@@ -489,7 +492,7 @@ const FleetCommanderDashboardModal: React.FC = () => {
 
                 {/* Dashboard Content */}
                 <div className="p-4 md:p-6">
-                  {!genesisShips || genesisShips.length === 0 ? (
+                  {!genesisShipsInGame || genesisShipsInGame.length === 0 ? (
                     <EmptyState />
                   ) : (
                     <>
@@ -501,7 +504,7 @@ const FleetCommanderDashboardModal: React.FC = () => {
                         <SummaryCard title="Fleet Stats">
                           <StatRow
                             label="Total Ships:"
-                            value={genesisShips.length}
+                            value={genesisShipsInGame.length}
                           />
                           <StatRow
                             label="Avg. Tier Bonus:"
@@ -542,18 +545,19 @@ const FleetCommanderDashboardModal: React.FC = () => {
                           <StatRow
                             label="On Mission:"
                             value={`${
-                              genesisShips.filter((ship) => ship.isOnMission)
-                                .length
-                            } / ${genesisShips.length}`}
+                              genesisShipsInGame.filter(
+                                (ship) => ship.isOnMission,
+                              ).length
+                            } / ${genesisShipsInGame.length}`}
                           />
                           <StatRow
                             label="Ready for Mission:"
-                            value={`${missionEligibleShips.length} / ${genesisShips.length}`}
+                            value={`${missionEligibleShips.length} / ${genesisShipsInGame.length}`}
                             highlight={missionEligibleShips.length > 0}
                           />
                           <StatRow
                             label="Claimable Ships:"
-                            value={`${rewardStats.claimableShips} / ${genesisShips.length}`}
+                            value={`${rewardStats.claimableShips} / ${genesisShipsInGame.length}`}
                             highlight={rewardStats.claimableShips > 0}
                           />
                           <div style={styles.divider} />
@@ -566,19 +570,19 @@ const FleetCommanderDashboardModal: React.FC = () => {
                           </h4>
                           <StatRow
                             label="License 1:"
-                            value={`${shipsWithLicenses.license1} / ${genesisShips.length}`}
+                            value={`${shipsWithLicenses.license1} / ${genesisShipsInGame.length}`}
                           />
                           <StatRow
                             label="License 2:"
-                            value={`${shipsWithLicenses.license2} / ${genesisShips.length}`}
+                            value={`${shipsWithLicenses.license2} / ${genesisShipsInGame.length}`}
                           />
                           <StatRow
                             label="License 3:"
-                            value={`${shipsWithLicenses.license3} / ${genesisShips.length}`}
+                            value={`${shipsWithLicenses.license3} / ${genesisShipsInGame.length}`}
                           />
                           <StatRow
                             label="Fully Licensed:"
-                            value={`${shipsWithLicenses.triple} / ${genesisShips.length}`}
+                            value={`${shipsWithLicenses.triple} / ${genesisShipsInGame.length}`}
                           />
                         </SummaryCard>
 
@@ -707,7 +711,7 @@ const FleetCommanderDashboardModal: React.FC = () => {
 
                       {/* Ships Table - Modified to handle claim rewards */}
                       <ShipsTable
-                        genesisShips={genesisShips as GenesisShip[]}
+                        genesisShips={genesisShipsInGame as GenesisShip[]}
                         handleOpenAddCaptainModal={handleOpenAddCaptainModal}
                         handleOpenLicenseModal={handleOpenLicenseModal}
                         handleOpenMissionModal={handleOpenMissionModal}

@@ -26,7 +26,7 @@ const EligibleNfts = ({ onClick, isLoading }: EligibleNftsProps) => {
   return (
     <div
       className={
-        'relative flex h-[241px] w-full rounded border border-[#8d56ff] bg-[rgba(141,86,255,0.2)] '
+        'relative col-span-2 flex h-[241px] w-full rounded border border-[#8d56ff] bg-[rgba(141,86,255,0.2)]'
       }>
       <div className="absolute left-0 top-0 z-0 h-full w-full blur-[10px]"></div>
       <div

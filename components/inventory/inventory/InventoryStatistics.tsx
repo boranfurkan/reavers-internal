@@ -251,6 +251,7 @@ const InventoryStatistics: React.FC = () => {
   // Quick summary for collapsed state
   const quickSummary = useMemo(() => {
     const totalTokens =
+      (user?.captainLevelToken || 0) +
       (user?.shipLevelToken || 0) +
       (user?.crewLevelToken || 0) +
       (user?.itemLevelToken || 0);
@@ -281,6 +282,19 @@ const InventoryStatistics: React.FC = () => {
         }`}>
         {/* Token Statistics Card */}
         <SummaryCard title="Level Up Tokens">
+          <StatRow
+            label="Captain Tokens"
+            value={user?.captainLevelToken || 0}
+            highlight={true}
+            icon={
+              <img
+                src="/images/captain-level-up-token.webp"
+                alt="Ship Token"
+                width={24}
+                height={24}
+              />
+            }
+          />
           <StatRow
             label="Ship Tokens"
             value={user?.shipLevelToken || 0}

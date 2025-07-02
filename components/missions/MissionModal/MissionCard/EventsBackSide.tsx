@@ -1,13 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Image from 'next/image';
 import { StyledEntityCard } from './MissionCard';
 import RarityBadge from '../../../inventory/RarityBadge';
 import {
-  calculateEndtimeForEvents,
   formatHoursToHMS,
-  getCostForLevelUp,
   getLevelRarity,
   getRarityColorWithOpacity,
 } from '../../../../utils/helpers';
@@ -16,6 +13,10 @@ import ArrowRightIcon from '../../../../assets/arrow-right-icon';
 import PlusIcon from '../../../../assets/plus-icon';
 import MinusIcon from '../../../../assets/minus-icon';
 import GetIconForEntitiy from '../../../GetIconForEntitiy';
+import {
+  calculateEndtimeForEventsNewVersion,
+  getGoldCostForLevelUpNewVersion,
+} from '../../../../utils/inventory-helpers';
 
 interface EventsBackSideProps {
   missionName: string;
@@ -204,11 +205,10 @@ const EventsBackSide = ({
                       <span className="inline-block min-w-[4ch] text-right">
                         {(
                           bootyCostMultiplier *
-                          getCostForLevelUp(
+                          getGoldCostForLevelUpNewVersion(
                             entityToBeUpgraded.type,
                             entityToBeUpgraded.level,
                             entityToBeUpgraded.level + amount,
-                            currentGoldPrice,
                           )
                         ).toFixed(2)}
                       </span>{' '}
@@ -222,7 +222,7 @@ const EventsBackSide = ({
                     <span className="text-xs font-semibold text-gray-300">
                       {formatHoursToHMS(
                         durationMultiplier *
-                          calculateEndtimeForEvents(
+                          calculateEndtimeForEventsNewVersion(
                             entityToBeUpgraded.type,
                             entityToBeUpgraded.level,
                             entityToBeUpgraded.level + amount,

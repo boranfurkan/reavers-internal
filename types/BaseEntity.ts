@@ -14,7 +14,7 @@ export enum NFTMaxLevels {
   MYTHIC_SHIP = 250,
   CAPTAIN = 50,
   UNIQUE_CAPTAIN = 100,
-  ITEM = 120,
+  ITEM = 125,
   GENESIS_SHIP = 260,
 }
 

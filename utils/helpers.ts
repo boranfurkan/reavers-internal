@@ -643,3 +643,13 @@ export const calculateTokenReward = (
 
   return Math.max(1, tokenReward); // Ensure minimum reward of 1 token
 };
+
+export const checkIfIslandOneLevellingLocation = (missionName: string) => {
+  const islandOneLocations = [
+    'The Docks',
+    'The Blacksmith',
+    'Shipwright and Co',
+    "Captain's Academy",
+  ];
+  return islandOneLocations.includes(missionName);
+};

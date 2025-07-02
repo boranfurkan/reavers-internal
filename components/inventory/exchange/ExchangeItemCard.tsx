@@ -1,4 +1,3 @@
-// components/missions/ExchangeModal/ExchangeItemCard.tsx
 import React, { useState, useCallback, useContext, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -65,7 +64,12 @@ const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({
   const isDynamicItem = (item: Item): item is DynamicExchangeItem =>
     'type' in item;
 
-  const isBattleTokenItem = item.yieldType === 'battleTokens';
+  const hideTaxShow =
+    item.yieldType === 'battleTokens' ||
+    item.yieldType === 'captainLevelToken' ||
+    item.yieldType === 'crewLevelToken' ||
+    item.yieldType === 'shipLevelToken' ||
+    item.yieldType === 'itemLevelToken';
 
   const handleAmountChange = useCallback(
     (change: number) => {
@@ -274,7 +278,7 @@ const ExchangeItemCard: React.FC<ExchangeItemCardProps> = ({
       animate="visible"
       whileHover="hover"
       className="relative flex min-h-[520px] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-white/20 bg-gradient-to-br from-black/90 to-gray-900/90 shadow-2xl backdrop-blur-md transition-all duration-300">
-      {!isBattleTokenItem && (
+      {!hideTaxShow && (
         <div className="absolute left-4 top-2 z-10 text-center text-sm font-semibold text-yellow-400/90">
           (10% TAX)
         </div>

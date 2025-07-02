@@ -311,8 +311,10 @@ export const NFTProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         return {
-          ...genesisShip,
           ...matchingEntry,
+          ...genesisShip,
+          // Ensure the in-game id always overrides the on-chain id
+          id: genesisShip.id,
         } as GenesisShipNFT;
       });
 

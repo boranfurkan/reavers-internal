@@ -242,7 +242,7 @@ const ExchangeComponent = () => {
                           ? 'slider'
                           : 'button'
                       }
-                      maxValue={Math.floor(user?.arAmount || 0)}
+                      maxValue={1000}
                     />
                   </motion.div>
                 ))}

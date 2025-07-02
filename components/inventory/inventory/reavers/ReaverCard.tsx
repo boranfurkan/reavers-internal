@@ -21,7 +21,6 @@ import ItemsIcon from '../../../../assets/items-icon';
 import CrewIcon from '../../../../assets/crew-icon';
 import ShipIcon from '../../../../assets/ship-icon';
 import LevelUpModal from '../../LevelUpModal';
-import CaptainLevelUpModal from '../../CaptainLevelUpModal';
 
 // Animation variants
 const cardVariants = {
@@ -142,13 +141,11 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
 
   const [levelUpModal, setLevelUpModal] = useState<{
     isOpen: boolean;
-    entityType: 'ship' | 'crew' | 'item' | null;
+    entityType: 'ship' | 'crew' | 'item' | 'captain' | null;
   }>({
     isOpen: false,
     entityType: null,
   });
-
-  const [captainLevelUpModal, setCaptainLevelUpModal] = useState(false);
 
   if (!layerContext) {
     throw new Error('ReaverCard must be used within a LayerProvider');
@@ -183,10 +180,13 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   };
 
   const getMaxLevel = (
-    entityType: 'ship' | 'crew' | 'item',
-    isLegendaryShip: boolean = false,
-  ) => {
+    entityType: 'ship' | 'crew' | 'item' | 'captain',
+    isLegendaryShip?: boolean,
+    isOneofOne?: boolean,
+  ): number => {
     switch (entityType) {
+      case 'captain':
+        return isOneofOne ? NFTMaxLevels.UNIQUE_CAPTAIN : NFTMaxLevels.CAPTAIN;
       case 'ship':
         return isLegendaryShip
           ? NFTMaxLevels.MYTHIC_SHIP
@@ -200,15 +200,13 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     }
   };
 
-  const getCaptainMaxLevel = () => {
-    return character.isOneofOne
-      ? NFTMaxLevels.UNIQUE_CAPTAIN
-      : NFTMaxLevels.CAPTAIN;
-  };
-
-  const getTokenCount = (entityType: 'ship' | 'crew' | 'item'): number => {
+  const getTokenCount = (
+    entityType: 'ship' | 'crew' | 'item' | 'captain',
+  ): number => {
     if (!user) return 0;
     switch (entityType) {
+      case 'captain':
+        return user.captainLevelToken;
       case 'ship':
         return user.shipLevelToken;
       case 'crew':
@@ -237,7 +235,9 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
   };
 
   // Event handlers
-  const handleLevelUpClick = (entityType: 'ship' | 'crew' | 'item') => {
+  const handleLevelUpClick = (
+    entityType: 'ship' | 'crew' | 'item' | 'captain',
+  ) => {
     setLevelUpModal({ isOpen: true, entityType });
   };
 
@@ -252,14 +252,6 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     );
   };
 
-  const handleCaptainLevelUpClick = () => {
-    setCaptainLevelUpModal(true);
-  };
-
-  const handleCaptainLevelUpClose = () => {
-    setCaptainLevelUpModal(false);
-  };
-
   // Modal data
   const getCurrentModalData = () => {
     if (!levelUpModal.entityType) return null;
@@ -269,6 +261,10 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     const entityImage = character.metadata?.image || '/images/reavers.webp';
 
     switch (levelUpModal.entityType) {
+      case 'captain':
+        currentLevel = character.level || 1;
+        entityName = `${character.metadata?.name || 'Captain'} Level`;
+        break;
       case 'ship':
         currentLevel = character.shipLevel || 0;
         entityName = `${character.metadata?.name || 'Captain'} Ship`;
@@ -287,6 +283,7 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
     const maxLevel = getMaxLevel(
       levelUpModal.entityType,
       character.shipRarity === ShipRarity.Legendary,
+      character.isOneofOne,
     );
 
     return {
@@ -360,8 +357,7 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
             {/* Captain level up button */}
             <button
               onClick={(e) => {
-                e.stopPropagation();
-                handleCaptainLevelUpClick();
+                handleLevelUpClick('captain');
               }}
               className="rounded-full bg-yellow-600 p-2 transition-all duration-200 hover:scale-110 hover:bg-yellow-500">
               <Plus className="h-4 w-4 text-white" />
@@ -496,19 +492,6 @@ const ReaverCard = ({ character }: ReaverCardProps) => {
           captainId={character.uid || character.id || ''}
           onLevelUp={handleLevelUpConfirm}
           character={character}
-        />
-      )}
-
-      {/* Captain Level Up Modal */}
-      {captainLevelUpModal && (
-        <CaptainLevelUpModal
-          isOpen={captainLevelUpModal}
-          onClose={handleCaptainLevelUpClose}
-          currentLevel={character.level || 1}
-          maxLevel={getCaptainMaxLevel()}
-          captainName={character.metadata?.name || 'Captain'}
-          captainImage={character.metadata?.image || '/images/reavers.webp'}
-          captainId={character.uid || character.id || ''}
         />
       )}
     </>
